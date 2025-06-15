@@ -1,0 +1,11 @@
+spring:
+  config:
+    activate:
+      on-profile: prod
+open:
+  api:
+    title: API Document
+    version: v1.0.0
+    description: Mota API service
+    serverUrl: http://localhost:${server.port}
+    serverName: server test
