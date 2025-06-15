@@ -102,7 +102,7 @@ public class NotificationServiceImpl implements NotificationService {
     @Override
     public void markAllNotificationsAsRead(Long userId) {
         List<Notification> unreadNotifications = notificationRepository
-                .findByReceiver_IdAndRead(userId, false);
+                .findByReceiver_IdAndRead(userId);
         unreadNotifications.forEach(notification -> notification.setRead(true));
         notificationRepository.saveAll(unreadNotifications);
         log.info("Marked all notifications as read for user: {}", userId);

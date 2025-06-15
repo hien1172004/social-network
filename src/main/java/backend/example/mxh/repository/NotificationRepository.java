@@ -18,9 +18,15 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
 """)
     Page<Notification> findByReceiver_IdAndIsRead(@Param("userId") long userId, Pageable pageable);
 
-    List<Notification> findByReceiver_IdAndReadIsFalse(Long receiverId, boolean read);
+    @Query("""
+    SELECT n FROM Notification n
+    WHERE n.receiver.id = :receiverId AND n.isRead = false
+""")
+    List<Notification> findByReceiver_IdAndRead(Long receiverId);
 
-    List<Notification> findByReceiver_IdAndRead(Long receiverId, boolean read);
-
+    @Query("""
+    select count(*) from Notification n
+    where n.receiver.id = :receiverId AND n.isRead = false
+""")
     long countByReceiverIdAndReadIsFalse(Long receiverId, boolean read);
 }

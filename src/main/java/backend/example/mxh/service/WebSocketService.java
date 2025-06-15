@@ -1,5 +1,6 @@
 package backend.example.mxh.service;
 
+import backend.example.mxh.DTO.response.MessageResponse;
 import backend.example.mxh.DTO.response.NotificationResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -15,7 +16,7 @@ public class WebSocketService {
         // Gửi thông báo đến một user cụ thể
         messagingTemplate.convertAndSendToUser(
             notification.getReceiverId().toString(),
-            "/topic/notifications",
+            "/queue/notifications",
             notification
         );
     }
@@ -23,5 +24,13 @@ public class WebSocketService {
     public void sendNotificationToAll(NotificationResponse notification) {
         // Gửi thông báo đến tất cả user
         messagingTemplate.convertAndSend("/topic/notifications", notification);
+    }
+
+    public void sendMessage(Long conversationId, MessageResponse message) {
+        messagingTemplate.convertAndSend("/topic/conversation/" + conversationId, message);
+    }
+
+    public void sendPrivateMessage(Long userId, MessageResponse message) {
+        messagingTemplate.convertAndSendToUser(userId.toString(), "/queue/messages", message);
     }
 }
