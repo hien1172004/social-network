@@ -73,4 +73,10 @@ public class User extends AbstractEntity {
     @OneToMany(mappedBy = "member")
     private List<ConversationMember> conversations;
 
+    @OneToMany(mappedBy = "sender")
+    private List<Notification> sentNotification;
+
+    @OneToMany(mappedBy = "receiver")
+    private List<Notification> receivedNotification;
+
 }
