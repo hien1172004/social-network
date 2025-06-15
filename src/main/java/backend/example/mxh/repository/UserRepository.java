@@ -7,10 +7,14 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
+
 public interface UserRepository extends JpaRepository<User, Long> {
     @Query("""
     SELECT distinct u from User u where LOWER(u.fullName) like lower(CONCAT('%', :key, '%')) 
     OR lower(u.fullName) like lower(CONCAT('%', :key, '%')) 
     """)
     Page<User> findByUsernameContainingIgnoreCaseOrFullNameContainingIgnoreCase(Pageable pageable ,@Param("key") String key);
+
+    Page<User> findByIdIn(Collection<Long> ids, Pageable pageable);
 }
