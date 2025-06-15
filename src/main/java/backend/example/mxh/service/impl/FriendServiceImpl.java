@@ -175,4 +175,27 @@ public class FriendServiceImpl implements FriendService {
                 .totalPages(mutualFriends.getTotalPages())
                 .build();
     }
+
+    @Override
+    public PageResponse<List<MutualFriendResponse>> getSuggestFriends(int pageNo, int pageSize, Long userId) {
+        int page = 0;
+        if(pageNo > 0){
+            page = pageNo - 1;
+        }
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        List<Long> suggestFriend = friendRepository.findFriendSuggestions(userId);
+        Page<User> mutualFriends = userRepository.findByIdIn(suggestFriend, pageable);
+        return PageResponse.<List<MutualFriendResponse>>builder()
+                .pageSize(pageSize)
+                .pageNo(pageNo)
+                .items(mutualFriends.stream().map(userMapper::toMutualFriendResponse).toList())
+                .totalElements(mutualFriends.getTotalElements())
+                .totalPages(mutualFriends.getTotalPages())
+                .build();
+    }
+
+    @Override
+    public Long countFriends(Long userId) {
+        return friendRepository.countFriendB(userId, FriendStatus.ACCEPTED);
+    }
 }

@@ -23,4 +23,8 @@ public interface FriendService {
     PageResponse< List<FriendResponse>> getFriends(int pageNo, int pageSize, Long userId);
 
     PageResponse< List<MutualFriendResponse>> getMutualFriends(Long userId1, Long userId2, int pageNo, int pageSize);
+
+    PageResponse< List<MutualFriendResponse>> getSuggestFriends(int pageNo, int pageSize, Long userId);
+
+    Long countFriends(Long userId);
 }

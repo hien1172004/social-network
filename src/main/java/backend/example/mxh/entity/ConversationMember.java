@@ -26,4 +26,7 @@ public class ConversationMember extends AbstractEntity {
     @ManyToOne
     @JoinColumn(name = "user_id", nullable = false)
     private User member;
+
+    @Builder.Default
+    private boolean admin = false;
 }

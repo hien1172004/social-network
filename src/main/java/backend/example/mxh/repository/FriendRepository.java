@@ -26,29 +26,47 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
     Page<Friend> findBySender_IdAndStatus(Long senderId, FriendStatus status, Pageable pageable);
 
     @Query("""
-     SELECT f FROM Friend f
-            WHERE (f.sender.id = :userId OR f.receiver.id = :userId)
-            AND f.status = :status
-""")
+                 SELECT f FROM Friend f
+                        WHERE (f.sender.id = :userId OR f.receiver.id = :userId)
+                        AND f.status = :status
+            """)
     Page<Friend> findAcceptedFriends(@Param("id") long userId, @Param("status") FriendStatus status, Pageable pageable);
 
     @Modifying
     @Query("""
-    DELETE FROM Friend f
-    WHERE ((f.sender.id = :userId1 AND f.receiver.id = :userId2)
-       OR  (f.sender.id = :userId2 AND f.receiver.id = :userId1))
-      AND f.status = :status
-""")
+                DELETE FROM Friend f
+                WHERE ((f.sender.id = :userId1 AND f.receiver.id = :userId2)
+                   OR  (f.sender.id = :userId2 AND f.receiver.id = :userId1))
+                  AND f.status = :status
+            """)
     void unfriend(Long userId1, Long userId2, FriendStatus status);
 
     @Query("""
-    SELECT CASE
-             WHEN f.sender.id = :userId THEN f.receiver.id
-             ELSE f.sender.id
-           END
-    FROM Friend f
-    WHERE (f.sender.id = :userId OR f.receiver.id = :userId)
-      AND f.status = :status
-""")
+                SELECT CASE
+                         WHEN f.sender.id = :userId THEN f.receiver.id
+                         ELSE f.sender.id
+                       END
+                FROM Friend f
+                WHERE (f.sender.id = :userId OR f.receiver.id = :userId)
+                  AND f.status = :status
+            """)
     List<Long> findFriendIds(@Param("userId") Long userId, @Param("status") FriendStatus status);
+
+    @Query("""
+                SELECT DISTINCT f2.receiver.id FROM Friend f1
+                JOIN Friend f2 ON f1.receiver.id = f2.sender.id
+                WHERE f1.sender.id = :userId AND f1.status = 'ACCEPTED' AND f2.status = 'ACCEPTED'
+                AND f2.receiver.id NOT IN (
+                    SELECT f3.receiver.id FROM Friend f3 
+                    WHERE (f3.sender.id = :userId OR f3.receiver.id = :userId)
+                )
+                AND f2.receiver.id != :userId
+            """)
+    List<Long> findFriendSuggestions(@Param("userId") Long userId);
+
+    @Query("""
+            select count(*) from Friend f where (f.sender.id = :userId or f.receiver.id = :userId)
+            and f.status = :status
+            """)
+    Long countFriendB(@Param("userId") long userId, @Param("status") FriendStatus status);
 }
