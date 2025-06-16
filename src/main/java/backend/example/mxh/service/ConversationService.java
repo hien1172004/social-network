@@ -1,11 +1,11 @@
 package backend.example.mxh.service;
 
-import backend.example.mxh.DTO.request.AddMemberDTO;
-import backend.example.mxh.DTO.request.ConversationDTO;
-import backend.example.mxh.DTO.request.ConversationMemberDTO;
-import backend.example.mxh.DTO.request.RemoveMemberDTO;
+import backend.example.mxh.DTO.request.*;
 import backend.example.mxh.DTO.response.ConversationResponse;
+import backend.example.mxh.DTO.response.MemberResponse;
+import org.apache.coyote.BadRequestException;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 // ConversationService.java
@@ -26,22 +26,22 @@ public interface ConversationService {
     void removeMemberFromConversation(RemoveMemberDTO removeMemberDTO);
     
     // Cập nhật thông tin cuộc trò chuyện
-    void updateConversation(Long conversationId, ConversationDTO conversationDTO);
+    void updateConversation(UpdateNameConversation updateNameConversation) throws AccessDeniedException;
     
     // Cập nhật avatar cuộc trò chuyện
     void updateConversationAvatar(Long conversationId, String avatarUrl);
     
     // Cập nhật vai trò thành viên
-    void updateMemberRole(Long conversationId, Long userId, String role);
+    void updateMemberRole(UpdateMemberRole updateMemberRole) throws AccessDeniedException;
     
     // Rời khỏi cuộc trò chuyện
-    void leaveConversation(Long conversationId, Long userId);
+    void leaveConversation(Long conversationId, Long userId) throws BadRequestException;
     
     // Xóa cuộc trò chuyện
-    void deleteConversation(Long conversationId);
+    void deleteConversation(Long conversationId, Long userId) throws BadRequestException;
     
     // Lấy danh sách thành viên
-    List<ConversationMemberDTO> getConversationMembers(Long conversationId);
+    List<MemberResponse> getConversationMembers(Long conversationId);
     
     // Kiểm tra quyền admin
     boolean isAdmin(Long conversationId, Long userId);
