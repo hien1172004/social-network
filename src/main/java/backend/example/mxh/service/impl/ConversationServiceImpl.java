@@ -3,27 +3,29 @@ package backend.example.mxh.service.impl;
 import backend.example.mxh.DTO.request.*;
 import backend.example.mxh.DTO.response.ConversationResponse;
 import backend.example.mxh.DTO.response.MemberResponse;
-import backend.example.mxh.entity.Conversation;
-import backend.example.mxh.entity.ConversationMember;
-import backend.example.mxh.entity.User;
+import backend.example.mxh.DTO.response.PageResponse;
+import backend.example.mxh.entity.*;
 import backend.example.mxh.exception.InvalidDataException;
 import backend.example.mxh.exception.ResourceNotFoundException;
 import backend.example.mxh.mapper.ConversationMapper;
 import backend.example.mxh.mapper.ConversationMemberMapper;
-import backend.example.mxh.repository.ConversationMemberRepository;
-import backend.example.mxh.repository.ConversationRepository;
-import backend.example.mxh.repository.MessageRepository;
-import backend.example.mxh.repository.UserRepository;
+import backend.example.mxh.mapper.MessageMapper;
+import backend.example.mxh.repository.*;
 import backend.example.mxh.service.ConversationService;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.coyote.BadRequestException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.AccessDeniedException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 
 @Service
@@ -36,6 +38,8 @@ public class ConversationServiceImpl implements ConversationService {
     private final MessageRepository messageRepository;
     private final ConversationMemberRepository conversationMemberRepository;
     private final ConversationMemberMapper conversationMemberMapper;
+    private final MessageStatusRepository messageStatusRepository;
+    private final MessageMapper messageMapper;
     @Override
     @Transactional
     public ConversationResponse createConversation(ConversationDTO conversationDTO) {
@@ -97,16 +101,30 @@ public class ConversationServiceImpl implements ConversationService {
     }
 
     @Override
-    public ConversationResponse getConversationById(Long id) {
+    public ConversationResponse getConversationById(Long id, Long userId) {
         Conversation conversation = conversationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Conversation not found"));
-        return conversationMapper.toResponse(conversation);
+        Message message = messageRepository.findTopMessage(id);
+        long unReadMessage = messageStatusRepository.countMessageNotRead(id, userId);
+
+        ConversationResponse conversationResponse = conversationMapper.toResponse(conversation);
+        conversationResponse.setUnreadCount((int) unReadMessage);
+        conversationResponse.setLastMessage(messageMapper.toResponse(message));
+        return conversationResponse;
     }
 
     @Override
     public List<ConversationResponse> getConversationsByUserId(Long userId) {
         List<Conversation> conversations = conversationRepository.findAllConversationsByUser_Id(userId);
-        return conversations.stream().map(conversationMapper::toResponse).toList();
+        return conversations.stream().map(conversation -> {
+            Message message = messageRepository.findTopMessage(conversation.getId());
+            long unReadMessage = messageStatusRepository.countMessageNotRead(conversation.getId(), userId);
+            ConversationResponse conversationResponse = conversationMapper.toResponse(conversation);
+            conversationResponse.setUnreadCount((int) unReadMessage);
+            conversationResponse.setLastMessage(messageMapper.toResponse(message));
+            return conversationResponse;
+        }).toList();
+
     }
 
     @Override
@@ -155,10 +173,6 @@ public class ConversationServiceImpl implements ConversationService {
         log.info("Update conversation: {}", dto.getConversationNewName());
     }
 
-    @Override
-    public void updateConversationAvatar(Long conversationId, String avatarUrl) {
-
-    }
 
     @Override
     public void updateMemberRole(UpdateMemberRole updateMemberRole) throws AccessDeniedException {
@@ -223,16 +237,43 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     @Transactional
-    public List<MemberResponse> getConversationMembers(Long conversationId) {
+    public PageResponse<List<MemberResponse>> getConversationMembers(Long conversationId, int pageNo, int pageSize) {
         // Kiểm tra tồn tại cuộc trò chuyện
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Conversation not found with id: " + conversationId));
-        List<ConversationMember> conversationMembers = conversationMemberRepository.findByConversation_Id(conversationId);
-        return conversationMembers.stream().map(conversationMemberMapper::toResponse).toList();
+        int page = 0;
+        if(pageNo > 0){
+            page = pageNo - 1;
+        }
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.ASC, "username"));
+        Page<ConversationMember> conversationMembers = conversationMemberRepository.findByConversation_Id(conversationId, pageable);
+        return PageResponse.<List<MemberResponse>>builder()
+                .pageNo(pageNo)
+                .pageSize(pageSize)
+                .totalElements(conversationMembers.getTotalElements())
+                .totalPages(conversationMembers.getTotalPages())
+                .items(conversationMembers.stream().map(conversationMemberMapper::toResponse).toList())
+                .build();
     }
 
     @Override
-    public boolean isAdmin(Long conversationId, Long userId) {
-        return false;
+    public PageResponse<List<MemberResponse>> findMemBerInConversation(Long conversationId, int pageNo, int pageSize, String keyword) {
+        int page = 0;
+        if(pageNo > 0){
+            page = pageNo - 1;
+        }
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.ASC, "username"));
+
+        Page<ConversationMember> conversationMembers = conversationMemberRepository.findMemberInConversation(conversationId, keyword, pageable);
+
+        return PageResponse.<List<MemberResponse>>builder()
+                .pageNo(pageNo)
+                .pageSize(pageSize)
+                .totalElements(conversationMembers.getTotalElements())
+                .totalPages(conversationMembers.getTotalPages())
+                .items(conversationMembers.stream().map(conversationMemberMapper::toResponse).toList())
+                .build();
     }
+
+
 }

@@ -1,7 +1,11 @@
 package backend.example.mxh.repository;
 
 import backend.example.mxh.entity.ConversationMember;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
 
 import java.util.List;
@@ -20,4 +24,13 @@ public interface ConversationMemberRepository extends JpaRepository<Conversation
     List<ConversationMember> findByConversation_Id(Long conversationId);
 
     long countByConversation_IdAndAdmin(Long conversationId, boolean admin);
+
+    @Query("""
+select cm from ConversationMember cm
+where cm.conversation.id = :conversationId
+and cm.member.username like concat('%', :key, '%')
+""")
+    Page<ConversationMember> findMemberInConversation(@Param("conversationId") Long conversationId,@Param("key") String key, Pageable pageable);
+
+    Page<ConversationMember> findByConversation_Id(Long conversationId, Pageable pageable);
 }
