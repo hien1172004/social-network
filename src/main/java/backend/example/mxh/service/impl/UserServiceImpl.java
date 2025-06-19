@@ -1,5 +1,6 @@
 package backend.example.mxh.service.impl;
 
+import backend.example.mxh.DTO.request.AddUserDTO;
 import backend.example.mxh.DTO.request.ImageDTO;
 import backend.example.mxh.DTO.request.UpdateUserDTO;
 import backend.example.mxh.DTO.response.PageResponse;
@@ -30,6 +31,14 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final UploadImageFile cloudinary;
+
+    @Override
+    public long addUser(AddUserDTO userDTO) {
+        User user = userMapper.toUser2(userDTO);
+        log.info("Adding user: {}", user);
+        return user.getId();
+    }
+
     @Override
     public void updateUser(long id, UpdateUserDTO dto) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("not found user"));
