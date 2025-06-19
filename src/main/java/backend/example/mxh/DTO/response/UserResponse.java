@@ -1,13 +1,14 @@
 package backend.example.mxh.DTO.response;
 
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import backend.example.mxh.until.UserRole;
+import lombok.*;
+
+import java.time.LocalDateTime;
 
 @AllArgsConstructor
 @NoArgsConstructor
 @Setter
+@Getter
 @Builder
 public class UserResponse {
     private Long id;
@@ -17,5 +18,6 @@ public class UserResponse {
     private String fullName;
     private String bio;
     private String status;
-    private String role;
+    private UserRole role;
+    private LocalDateTime lastActive;
 }

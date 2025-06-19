@@ -7,6 +7,7 @@ import jakarta.persistence.*;
 import lombok.*;
 
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 
@@ -41,6 +42,8 @@ public class User extends AbstractEntity {
     @Column(nullable = false)
     @Builder.Default
     private UserStatus status = UserStatus.OFFLINE;
+
+    private LocalDateTime lastActive;
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

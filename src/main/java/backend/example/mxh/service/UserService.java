@@ -22,4 +22,16 @@ public interface UserService {
     PageResponse<List<UserResponse>> searchUser(int pageNo, int pageSize, String key);
 
     void deleteUser(long id);
+
+    void setUserOnline(long id);
+
+    void setUserOffline(long id);
+
+    PageResponse<List<UserResponse>> getUsersOnline(int pageNo, int pageSize);
+
+    UserResponse getUserOnlineStatus(long id);
+
+    void updateLastActiveTime(long id);
+
+    void autoMarkUserOffline();
 }
