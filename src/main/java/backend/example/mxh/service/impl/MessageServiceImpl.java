@@ -1,15 +1,13 @@
 package backend.example.mxh.service.impl;
 
 import backend.example.mxh.DTO.request.MessageDTO;
+import backend.example.mxh.DTO.response.MessageReadResponse;
 import backend.example.mxh.DTO.response.MessageResponse;
 import backend.example.mxh.DTO.response.PageResponse;
 import backend.example.mxh.entity.*;
 import backend.example.mxh.exception.ResourceNotFoundException;
 import backend.example.mxh.mapper.MessageMapper;
-import backend.example.mxh.repository.ConversationRepository;
-import backend.example.mxh.repository.MessageRepository;
-import backend.example.mxh.repository.MessageStatusRepository;
-import backend.example.mxh.repository.UserRepository;
+import backend.example.mxh.repository.*;
 import backend.example.mxh.service.MessageService;
 
 import backend.example.mxh.service.WebSocketService;
@@ -37,6 +35,7 @@ public class MessageServiceImpl implements MessageService {
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
     private final WebSocketService webSocketService;
+    private final ConversationMemberRepository conversationMemberRepository;
 
     @Override
     public MessageResponse sendMessage(MessageDTO messageDTO) {
@@ -104,7 +103,15 @@ public class MessageServiceImpl implements MessageService {
             status.setRead(true);
             messageStatusRepository.save(status);
         }
+
         log.info("Message marked as read");
+        // Gửi realtime cho những user còn lại trong conversation
+        MessageReadResponse response = new MessageReadResponse(messageId, userId);
+        List<ConversationMember> conversationMembers = status.getMessage().getConversation().getMembers();
+        conversationMembers.stream()
+                .map(ConversationMember::getMember)
+                .filter(member -> !member.getId().equals(userId)) // loại người đã đọc
+                .forEach(member -> webSocketService.sendReadMessageStatus(status.getMessage().getConversation().getId(), response));
     }
 
     @Override
@@ -113,6 +120,20 @@ public class MessageServiceImpl implements MessageService {
         statuses.forEach(message -> message.setRead(true));
         messageStatusRepository.saveAll(statuses);
         log.info("All messages marked as read");
+
+        // Gửi realtime tới các thành viên khác trong cuộc trò chuyện
+        List<ConversationMember> members = conversationMemberRepository.findByConversation_Id(conversationId);
+        List<User> otherUsers = members.stream()
+                .map(ConversationMember::getMember)
+                .filter(member -> !member.getId().equals(userId)) // loại người đã đọc
+                .toList();
+
+        for (MessageStatus status : statuses) {
+            MessageReadResponse response = new MessageReadResponse(status.getMessage().getId(), userId);
+            for (User other : otherUsers) {
+                webSocketService.sendReadMessageStatus(conversationId, response);
+            }
+        }
     }
 
     @Override

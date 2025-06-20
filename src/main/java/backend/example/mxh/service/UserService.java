@@ -29,7 +29,7 @@ public interface UserService {
 
     PageResponse<List<UserResponse>> getUsersOnline(int pageNo, int pageSize);
 
-    UserResponse getUserOnlineStatus(long id);
+//    UserResponse getUserOnlineStatus(long id);
 
     void updateLastActiveTime(long id);
 

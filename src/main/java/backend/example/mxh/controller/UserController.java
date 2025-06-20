@@ -10,7 +10,9 @@ import backend.example.mxh.service.UserService;
 import backend.example.mxh.until.ResponseCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -82,4 +84,15 @@ public class UserController {
         userService.deleteUser(id);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Xoá người dùng thành công"));
     }
+
+
+    @GetMapping("/online")
+    public ResponseEntity<ResponseData<PageResponse<List<UserResponse>>>> getOnlineUsers(
+            @RequestParam(defaultValue = "1") int pageNo,
+            @RequestParam(defaultValue = "10") int pageSize
+    ) {
+        PageResponse<List<UserResponse>> result = userService.getUsersOnline(pageNo, pageSize);
+        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Lấy ngươi dung online thanh cong", result));
+    }
+
 }

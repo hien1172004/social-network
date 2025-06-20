@@ -2,6 +2,7 @@ package backend.example.mxh.service.impl;
 
 
 import backend.example.mxh.DTO.request.FriendDTO;
+import backend.example.mxh.DTO.request.NotificationDTO;
 import backend.example.mxh.DTO.response.FriendResponse;
 import backend.example.mxh.DTO.response.MutualFriendResponse;
 import backend.example.mxh.DTO.response.PageResponse;
@@ -14,7 +15,9 @@ import backend.example.mxh.mapper.UserMapper;
 import backend.example.mxh.repository.FriendRepository;
 import backend.example.mxh.repository.UserRepository;
 import backend.example.mxh.service.FriendService;
+import backend.example.mxh.service.NotificationService;
 import backend.example.mxh.until.FriendStatus;
+import backend.example.mxh.until.NotificationType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -36,6 +39,7 @@ public class FriendServiceImpl implements FriendService {
     private final FriendMapper friendMapper;
     private final UserRepository userRepository;
     private final UserMapper userMapper;
+    private final NotificationService notificationService;
     @Override
     public Long sendFriendRequest(FriendDTO dto) {
         User receiver = userRepository.findById(dto.getReceiverId())
@@ -58,6 +62,13 @@ public class FriendServiceImpl implements FriendService {
                 .build();
         friendRepository.save(friend);
         log.info("Friend request sent.");
+        // Gửi thông báo sau khi gửi lời mời
+        NotificationDTO notificationDTO = NotificationDTO.builder()
+                .senderId(dto.getSenderId())
+                .receiverId(dto.getReceiverId())
+                .type(NotificationType.FRIEND_REQUEST.name()) // Enum
+                .build();
+        notificationService.createNotification(notificationDTO);
         return friend.getId();
     }
 
@@ -69,6 +80,14 @@ public class FriendServiceImpl implements FriendService {
         friend.setStatus(FriendStatus.ACCEPTED);
         friendRepository.save(friend);
         log.info("Accepted friend request: {}", friend);
+
+        // Gửi thông báo sau khi gửi lời mời
+        NotificationDTO notificationDTO = NotificationDTO.builder()
+                .senderId(friend.getSender().getId())
+                .receiverId(friend.getReceiver().getId())
+                .type(NotificationType.ACCEPT_REQUEST.name()) // Enum
+                .build();
+        notificationService.createNotification(notificationDTO);
     }
 
     @Override

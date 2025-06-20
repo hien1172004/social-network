@@ -5,6 +5,7 @@ import org.springframework.messaging.simp.config.MessageBrokerRegistry;
 import org.springframework.web.socket.config.annotation.EnableWebSocketMessageBroker;
 import org.springframework.web.socket.config.annotation.StompEndpointRegistry;
 import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerConfigurer;
+import org.springframework.web.socket.config.annotation.WebSocketTransportRegistration;
 
 // WebSocketConfig.java
 @Configuration
@@ -15,8 +16,9 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry config) {
-        config.enableSimpleBroker("/topic"); // Prefix cho các topic server gui cho client
-        config.setApplicationDestinationPrefixes("/app"); // Prefix cho các message client gui len server
+        config.enableSimpleBroker("/topic", "/queue", "/user"); // ⚠️ cần /user nếu dùng convertAndSendToUser
+        config.setApplicationDestinationPrefixes("/app");
+        config.setUserDestinationPrefix("/user");
     }
 
     @Override
@@ -24,5 +26,12 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
         registry.addEndpoint("/ws") // client ket noi voi socket
                 .setAllowedOrigins("*") // Trong môi trường production nên giới hạn origin
                 .withSockJS(); // Hỗ trợ fallback cho các trình duyệt không hỗ trợ WebSocket
+    }
+
+    @Override
+    public void configureWebSocketTransport(WebSocketTransportRegistration registry) {
+        registry.setSendTimeLimit(60 * 1000)
+                .setSendBufferSizeLimit(50 * 1024 * 1024)
+                .setMessageSizeLimit(50 * 1024 * 1024);
     }
 }

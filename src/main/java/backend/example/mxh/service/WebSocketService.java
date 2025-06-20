@@ -1,6 +1,7 @@
 package backend.example.mxh.service;
 
 import backend.example.mxh.DTO.request.UserStatusDTO;
+import backend.example.mxh.DTO.response.MessageReadResponse;
 import backend.example.mxh.DTO.response.MessageResponse;
 import backend.example.mxh.DTO.response.NotificationResponse;
 import backend.example.mxh.DTO.response.UserResponse;
@@ -38,13 +39,19 @@ public class WebSocketService {
         messagingTemplate.convertAndSendToUser(userId.toString(), "/queue/messages", message);
     }
 
-    public void setOnlineStatus(UserResponse user) {
-        messagingTemplate.convertAndSend("/topic/user-status", new UserStatusDTO(user.getId(), "ONLINE"));
-        log.info("Gửi trạng thái ONLINE cho user {}", user.getId());
+    public void setOnlineStatus(long userId) {
+        messagingTemplate.convertAndSend("/topic/user-status", new UserStatusDTO(userId, "ONLINE"));
+        log.info("Gửi trạng thái ONLINE cho user {}", userId);
     }
 
-    public void setOfflineStatus(UserResponse user) {
-        messagingTemplate.convertAndSend("/topic/user-status", new UserStatusDTO(user.getId(), "OFFLINE"));
-        log.info("Gửi trạng thái OFFLINE cho user {}", user.getId());
+    public void setOfflineStatus(long userId) {
+        messagingTemplate.convertAndSend("/topic/user-status", new UserStatusDTO(userId, "OFFLINE"));
+        log.info("Gửi trạng thái OFFLINE cho user {}", userId);
     }
+
+    public void sendReadMessageStatus(Long conversationId, MessageReadResponse response) {
+        messagingTemplate.convertAndSend("/topic/conversations/" + conversationId + "/read", response);
+    }
+
+
 }

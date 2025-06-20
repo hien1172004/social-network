@@ -1,6 +1,7 @@
 package backend.example.mxh.service.impl;
 
 import backend.example.mxh.DTO.request.CommentDTO;
+import backend.example.mxh.DTO.request.NotificationDTO;
 import backend.example.mxh.DTO.response.CommentResponse;
 import backend.example.mxh.entity.Comment;
 import backend.example.mxh.exception.ResourceNotFoundException;
@@ -9,6 +10,8 @@ import backend.example.mxh.repository.CommentRepository;
 import backend.example.mxh.repository.PostsRepository;
 import backend.example.mxh.repository.UserRepository;
 import backend.example.mxh.service.CommentService;
+import backend.example.mxh.service.NotificationService;
+import backend.example.mxh.until.NotificationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -24,7 +27,7 @@ public class CommentServiceImpl implements CommentService {
     private final UserRepository userRepository;
     private final PostsRepository postsRepository;
     private final CommentMapper commentMapper;
-
+    private final NotificationService notificationService;
 
     @Override
     public Long create(CommentDTO dto) {
@@ -33,6 +36,17 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentMapper.toComment(dto);
         commentRepository.save(comment);
         log.info("Create comment {}", comment);
+
+
+        // Gửi thông báo sau khi gửi lời mời
+        NotificationDTO notificationDTO = NotificationDTO.builder()
+                .senderId(comment.getUser().getId())
+                .receiverId(comment.getPosts().getUser().getId())
+                .type(NotificationType.COMMENT.name()) // Enum
+                .build();
+        if (!comment.getUser().getId().equals(comment.getPosts().getUser().getId())) {
+            notificationService.createNotification(notificationDTO);
+        }
         return comment.getId();
     }
 

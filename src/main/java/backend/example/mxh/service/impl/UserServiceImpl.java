@@ -135,7 +135,7 @@ public class UserServiceImpl implements UserService {
         user.setLastActive(LocalDateTime.now());
         userRepository.save(user);
 
-        webSocketService.setOnlineStatus(userMapper.toUserResponse(user));
+        webSocketService.setOnlineStatus(user.getId());
         // Gửi thông báo WebSocket đến tất cả client
         log.info("Người dùng {} chuyển sang trạng thái ONLINE", user.getUsername());
     }
@@ -146,7 +146,7 @@ public class UserServiceImpl implements UserService {
         user.setStatus(backend.example.mxh.until.UserStatus.OFFLINE);
         user.setLastActive(LocalDateTime.now());
         userRepository.save(user);
-        webSocketService.setOfflineStatus(userMapper.toUserResponse(user));
+        webSocketService.setOfflineStatus(user.getId());
         // Gửi thông báo WebSocket đến tất cả client
         log.info("Người dùng {} chuyển sang trạng thái OFFLINE", user.getUsername());
     }
@@ -168,19 +168,19 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-    @Override
-    public UserResponse getUserOnlineStatus(long id) {
-        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("not found user"));
-        if(user.getStatus().equals(backend.example.mxh.until.UserStatus.ONLINE) && user.getLastActive() != null){
-            if(user.getLastActive().isBefore(LocalDateTime.now().minusMinutes(5))){
-                user.setStatus(UserStatus.OFFLINE);
-                userRepository.save(user);
-                webSocketService.setOfflineStatus(userMapper.toUserResponse(user));
-                log.info("Người dùng {} được đánh dấu OFFLINE do không hoạt động", user.getUsername());
-            }
-        }
-        return userMapper.toUserResponse(user);
-    }
+//    @Override
+//    public UserResponse getUserOnlineStatus(long id) {
+//        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("not found user"));
+//        if(user.getStatus().equals(backend.example.mxh.until.UserStatus.ONLINE) && user.getLastActive() != null){
+//            if(user.getLastActive().isBefore(LocalDateTime.now().minusMinutes(5))){
+//                user.setStatus(UserStatus.OFFLINE);
+//                userRepository.save(user);
+//                webSocketService.setOfflineStatus(user.getId());
+//                log.info("Người dùng {} được đánh dấu OFFLINE do không hoạt động", user.getUsername());
+//            }
+//        }
+//        return userMapper.toUserResponse(user);
+//    }
 
     @Override
     public void updateLastActiveTime(long userId) {
@@ -197,12 +197,20 @@ public class UserServiceImpl implements UserService {
     public void autoMarkUserOffline() {
         List<User> onlineUsers = userRepository.findByStatusAndLastActiveBefore(
                 UserStatus.ONLINE, LocalDateTime.now().minusMinutes(5));
+
+        if (onlineUsers.isEmpty()) return;
+
         for (User user : onlineUsers) {
             user.setStatus(UserStatus.OFFLINE);
-            userRepository.save(user);
-            webSocketService.setOfflineStatus(userMapper.toUserResponse(user));
-            log.info("Người dùng {} được đánh dấu OFFLINE do không hoạt động", user.getUsername());
         }
+
+        userRepository.saveAll(onlineUsers); // ✅ Gọi 1 lần saveAll thay vì từng user
+
+        // Gửi WebSocket thông báo trạng thái OFFLINE
+        onlineUsers.forEach(user -> {
+            webSocketService.setOfflineStatus(user.getId());
+            log.info("Người dùng {} được đánh dấu OFFLINE do không hoạt động", user.getUsername());
+        });
     }
 
 }
