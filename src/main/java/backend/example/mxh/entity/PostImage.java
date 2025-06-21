@@ -2,13 +2,14 @@ package backend.example.mxh.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Getter
 @Setter
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 @Table(name = "post_images")
 public class PostImage extends AbstractEntity {
     @Id

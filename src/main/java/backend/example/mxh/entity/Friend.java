@@ -3,12 +3,13 @@ package backend.example.mxh.entity;
 import backend.example.mxh.until.FriendStatus;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "friends", uniqueConstraints = {
         @UniqueConstraint(columnNames = {"sender_id", "receiver_id"})
 })
-@Builder
+@SuperBuilder
 @AllArgsConstructor
 @NoArgsConstructor
 @Getter

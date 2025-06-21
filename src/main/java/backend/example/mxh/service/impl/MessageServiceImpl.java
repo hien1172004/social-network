@@ -50,11 +50,13 @@ public class MessageServiceImpl implements MessageService {
         // Tạo MessageStatus cho tất cả thành viên trong cuộc trò chuyện
         Message finalMessage = message;
         List<MessageStatus> statuses = conversation.getMembers().stream()
-                .map(member -> MessageStatus.builder()
-                        .message(finalMessage)
-                        .user(member.getMember())
-                        .isRead(member.getMember().getId().equals(sender.getId()))
-                        .build())
+                .map((ConversationMember member) -> {
+                    MessageStatus status = new MessageStatus();
+                    status.setMessage(finalMessage);
+                    status.setUser(member.getMember());
+                    status.setRead(member.getMember().getId().equals(sender.getId()));
+                    return status;
+                })
                 .toList();
         message.setStatuses(statuses);
 

@@ -3,6 +3,7 @@ package backend.example.mxh.entity;
 import backend.example.mxh.until.NotificationType;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 // Notification.java
 @Entity
@@ -11,7 +12,7 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 public class Notification extends AbstractEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

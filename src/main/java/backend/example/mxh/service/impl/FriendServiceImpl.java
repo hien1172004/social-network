@@ -55,18 +55,17 @@ public class FriendServiceImpl implements FriendService {
             throw new IllegalArgumentException("Friend request already exists or already friends.");
         }
 
-        Friend friend = Friend.builder()
-                .sender(sender)
-                .receiver(receiver)
-                .status(FriendStatus.PENDING)
-                .build();
+        Friend friend = new Friend();
+        friend.setSender(sender);
+        friend.setReceiver(receiver);
+        friend.setStatus(FriendStatus.PENDING);
         friendRepository.save(friend);
         log.info("Friend request sent.");
         // Gửi thông báo sau khi gửi lời mời
         NotificationDTO notificationDTO = NotificationDTO.builder()
                 .senderId(dto.getSenderId())
                 .receiverId(dto.getReceiverId())
-                .type(NotificationType.FRIEND_REQUEST.name()) // Enum
+                .type(NotificationType.FRIEND_REQUEST) // Enum
                 .build();
         notificationService.createNotification(notificationDTO);
         return friend.getId();
@@ -85,7 +84,7 @@ public class FriendServiceImpl implements FriendService {
         NotificationDTO notificationDTO = NotificationDTO.builder()
                 .senderId(friend.getSender().getId())
                 .receiverId(friend.getReceiver().getId())
-                .type(NotificationType.ACCEPT_REQUEST.name()) // Enum
+                .type(NotificationType.ACCEPT_REQUEST) // Enum
                 .build();
         notificationService.createNotification(notificationDTO);
     }

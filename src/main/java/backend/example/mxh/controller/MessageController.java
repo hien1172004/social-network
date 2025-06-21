@@ -4,6 +4,7 @@ import backend.example.mxh.DTO.request.MessageDTO;
 import backend.example.mxh.DTO.response.MessageResponse;
 import backend.example.mxh.DTO.response.PageResponse;
 import backend.example.mxh.service.MessageService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,7 @@ public class MessageController {
 
     // Gửi tin nhắn mới
     @PostMapping
-    public ResponseEntity<MessageResponse> sendMessage(@RequestBody MessageDTO messageDTO) {
+    public ResponseEntity<MessageResponse> sendMessage(@RequestBody @Valid MessageDTO messageDTO) {
         return ResponseEntity.ok(messageService.sendMessage(messageDTO));
     }
 

@@ -44,7 +44,7 @@ public class NotificationServiceImpl implements NotificationService {
             throw new InvalidDataException("sender and receiver are the same");
         }
         Notification notification = notificationMapper.toNotification(notificationDTO);
-        NotificationType type = NotificationType.valueOf(notificationDTO.getType()); // Enum
+        NotificationType type = notificationDTO.getType(); // Enum
         String content = type.buildContent(sender.getUsername());
         notification.setType(type);
         notification.setContent(content);
@@ -110,7 +110,7 @@ public class NotificationServiceImpl implements NotificationService {
 
     @Override
     public long countUnreadNotifications(Long userId) {
-        return notificationRepository.countByReceiverIdAndReadIsFalse(userId, false);
+        return notificationRepository.countByReceiverIdAndReadIsFalse(userId);
     }
 
 }

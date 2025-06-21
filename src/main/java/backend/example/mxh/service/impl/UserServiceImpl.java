@@ -22,6 +22,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -38,6 +39,7 @@ public class UserServiceImpl implements UserService {
     private final WebSocketService webSocketService;
 
     @Override
+    @Transactional
     public long addUser(AddUserDTO userDTO) {
         if (userDTO == null || userDTO.getEmail() == null || userDTO.getUsername() == null) {
             throw new IllegalArgumentException("Dữ liệu người dùng không hợp lệ");
@@ -54,6 +56,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void updateUser(long id, UpdateUserDTO dto) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("not found user"));
         userMapper.updateUser(user, dto);
@@ -62,6 +65,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void updateAvatar(long userId, ImageDTO dto) throws IOException {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("not found user"));
         if(!user.getPublicId().isEmpty()){
@@ -121,6 +125,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void deleteUser(long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("not found user"));
         user.setAccountStatus(AccountStatus.INACTIVE);
@@ -129,6 +134,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void setUserOnline(long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("not found user"));
         user.setStatus(backend.example.mxh.until.UserStatus.ONLINE);
@@ -141,6 +147,7 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional
     public void setUserOffline(long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("not found user"));
         user.setStatus(backend.example.mxh.until.UserStatus.OFFLINE);
@@ -183,6 +190,7 @@ public class UserServiceImpl implements UserService {
 //    }
 
     @Override
+    @Transactional
     public void updateLastActiveTime(long userId) {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Không tìm thấy người dùng với ID: " + userId));
@@ -194,6 +202,7 @@ public class UserServiceImpl implements UserService {
 
     @Override
     @Scheduled(fixedRate = 60000)
+    @Transactional
     public void autoMarkUserOffline() {
         List<User> onlineUsers = userRepository.findByStatusAndLastActiveBefore(
                 UserStatus.ONLINE, LocalDateTime.now().minusMinutes(5));

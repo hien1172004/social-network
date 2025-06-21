@@ -4,6 +4,7 @@ import backend.example.mxh.DTO.request.NotificationDTO;
 import backend.example.mxh.DTO.response.NotificationResponse;
 import backend.example.mxh.DTO.response.PageResponse;
 import backend.example.mxh.service.NotificationService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,7 +20,7 @@ public class NotificationController {
 
     // Gửi thông báo mới
     @PostMapping
-    public ResponseEntity<Void> createNotification(@RequestBody NotificationDTO notificationDTO) {
+    public ResponseEntity<Void> createNotification(@RequestBody @Valid NotificationDTO notificationDTO) {
         notificationService.createNotification(notificationDTO);
         return ResponseEntity.ok().build();
     }

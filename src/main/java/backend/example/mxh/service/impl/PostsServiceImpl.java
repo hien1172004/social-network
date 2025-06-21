@@ -53,7 +53,13 @@ public class PostsServiceImpl implements PostsService {
             }
 
             // Thêm danh sách ảnh mới
-            List<PostImage> newImages = postsDTO.getPostImage().stream().map(dto -> PostImage.builder().imageUrl(dto.getImageUrl()).publicId(dto.getPublicId()).posts(posts).build()).toList();
+            List<PostImage> newImages = postsDTO.getPostImage().stream().map(dto ->
+                    PostImage.builder().
+                            imageUrl(dto.getImageUrl())
+                            .publicId(dto.getPublicId()).
+                            posts(posts)
+                            .build())
+                    .collect(Collectors.toList());
 
             posts.setPostImage(newImages);
         }

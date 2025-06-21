@@ -8,9 +8,11 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@Repository
 public interface FriendRepository extends JpaRepository<Friend, Long> {
     @Query(value = """
             select case when count(*) > 0 then true else false end
@@ -30,7 +32,7 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
                         WHERE (f.sender.id = :userId OR f.receiver.id = :userId)
                         AND f.status = :status
             """)
-    Page<Friend> findAcceptedFriends(@Param("id") long userId, @Param("status") FriendStatus status, Pageable pageable);
+    Page<Friend> findAcceptedFriends(@Param("userId") long userId, @Param("status") FriendStatus status, Pageable pageable);
 
     @Modifying
     @Query("""

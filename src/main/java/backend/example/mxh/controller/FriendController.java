@@ -7,6 +7,7 @@ import backend.example.mxh.DTO.response.PageResponse;
 import backend.example.mxh.DTO.response.ResponseData;
 import backend.example.mxh.service.FriendService;
 import backend.example.mxh.until.ResponseCode;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +24,7 @@ public class FriendController {
      * Gửi lời mời kết bạn
      */
     @PostMapping("/request")
-    public ResponseEntity<ResponseData<Long>> sendFriendRequest(@RequestBody FriendDTO dto) {
+    public ResponseEntity<ResponseData<Long>> sendFriendRequest(@RequestBody @Valid FriendDTO dto) {
         Long requestId = friendService.sendFriendRequest(dto);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Gửi lời mời kết bạn thành công", requestId));
     }

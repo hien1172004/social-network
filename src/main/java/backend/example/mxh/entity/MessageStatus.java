@@ -2,6 +2,7 @@ package backend.example.mxh.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "message_status", uniqueConstraints = {
@@ -11,7 +12,7 @@ import lombok.*;
 @NoArgsConstructor
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 public class MessageStatus extends AbstractEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -29,6 +30,5 @@ public class MessageStatus extends AbstractEntity {
 
     // Trạng thái: Đã đọc hay chưa
     @Column(name = "is_read", nullable = false)
-    @Builder.Default
     private boolean isRead = false;
 }

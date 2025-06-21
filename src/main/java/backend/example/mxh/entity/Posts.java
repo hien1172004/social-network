@@ -2,6 +2,7 @@ package backend.example.mxh.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.List;
 
@@ -11,7 +12,7 @@ import java.util.List;
 @Table(name = "posts")
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 public class Posts extends AbstractEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

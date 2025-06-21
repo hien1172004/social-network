@@ -24,7 +24,7 @@ public class WebSocketConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws") // client ket noi voi socket
-                .setAllowedOrigins("*") // Trong môi trường production nên giới hạn origin
+                .setAllowedOriginPatterns("*") // Sử dụng setAllowedOriginPatterns thay vì setAllowedOrigins
                 .withSockJS(); // Hỗ trợ fallback cho các trình duyệt không hỗ trợ WebSocket
     }
 

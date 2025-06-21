@@ -77,20 +77,19 @@ public class ConversationServiceImpl implements ConversationService {
         // Thêm các thành viên (không bao gồm creator nếu đã có trong memberIds)
         for (User member : members) {
             if (!member.getId().equals(conversationDTO.getCreatorId())) {
-                memberEntities.add(ConversationMember.builder()
-                        .conversation(conversation)
-                        .member(member)
-                        .admin(!conversation.isGroup()) // Trong nhóm, chỉ creator là admin
-                        .build());
+                memberEntities.add(new ConversationMember());
+                memberEntities.get(memberEntities.size() - 1).setConversation(conversation);
+                memberEntities.get(memberEntities.size() - 1).setMember(member);
+                memberEntities.get(memberEntities.size() - 1).setAdmin(false);
             }
         }
 
         // Thêm creator vào danh sách thành viên (luôn là admin)
-        memberEntities.add(ConversationMember.builder()
-                .conversation(conversation)
-                .member(creator)
-                .admin(true)
-                .build());
+        ConversationMember creatorMember = new ConversationMember();
+        creatorMember.setConversation(conversation);
+        creatorMember.setMember(creator);
+        creatorMember.setAdmin(true);
+        memberEntities.add(creatorMember);
 
         // Gán thành viên và lưu
         conversation.setMembers(memberEntities);
@@ -137,11 +136,10 @@ public class ConversationServiceImpl implements ConversationService {
         List<User> users = userRepository
                 .findAllById(dto.getMemberIds());
         for (User user : users) {
-            ConversationMember member = ConversationMember.builder()
-                    .conversation(conversation)
-                    .member(user)
-                    .admin(false)
-                    .build();
+            ConversationMember member = new ConversationMember();
+            member.setConversation(conversation);
+            member.setMember(user);
+            member.setAdmin(false);
             conversationMemberRepository.save(member);
         }
         log.info("Add member to conversation");
@@ -165,12 +163,12 @@ public class ConversationServiceImpl implements ConversationService {
         Conversation conversation = conversationRepository.findById(dto.getConversationId())
                 .orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
 
-        boolean isAdmin = conversationMemberRepository.existsByConversation_IdAndMember_IdAndAdmin(conversation.getId(), dto.getRequesterId(), true);
+        boolean isAdmin = conversationMemberRepository.existsByConversation_IdAndMember_IdAndAdmin(conversation.getId(), dto.getUserId(), true);
         if(!isAdmin) throw new AccessDeniedException("You are not allowed to change name group");
 
-        conversation.setGroupName(dto.getConversationNewName());
+        conversation.setGroupName(dto.getGroupName());
         conversationRepository.save(conversation);
-        log.info("Update conversation: {}", dto.getConversationNewName());
+        log.info("Update conversation: {}", dto.getGroupName());
     }
 
 

@@ -44,25 +44,25 @@ public class ConversationController {
     }
 
     @PostMapping("/members")
-    public ResponseEntity<ResponseData<Void>> addMember(@RequestBody AddMemberDTO dto) {
+    public ResponseEntity<ResponseData<Void>> addMember(@RequestBody @Valid AddMemberDTO dto) {
         conversationService.addMemberToConversation(dto);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Thêm thành viên thành công"));
     }
 
     @DeleteMapping("/members")
-    public ResponseEntity<ResponseData<Void>> removeMember(@RequestBody RemoveMemberDTO dto) {
+    public ResponseEntity<ResponseData<Void>> removeMember(@RequestBody @Valid RemoveMemberDTO dto) {
         conversationService.removeMemberFromConversation(dto);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Xóa thành viên thành công"));
     }
 
     @PutMapping("/update-name")
-    public ResponseEntity<ResponseData<Void>> updateName(@RequestBody UpdateNameConversation dto) throws AccessDeniedException {
+    public ResponseEntity<ResponseData<Void>> updateName(@RequestBody @Valid UpdateNameConversation dto) throws AccessDeniedException {
         conversationService.updateConversation(dto);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Cập nhật tên nhóm thành công"));
     }
 
     @PutMapping("/update-role")
-    public ResponseEntity<ResponseData<Void>> updateRole(@RequestBody UpdateMemberRole dto) throws AccessDeniedException {
+    public ResponseEntity<ResponseData<Void>> updateRole(@RequestBody @Valid UpdateMemberRole dto) throws AccessDeniedException {
         conversationService.updateMemberRole(dto);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Cập nhật quyền thành công"));
     }

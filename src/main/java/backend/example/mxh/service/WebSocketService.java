@@ -53,5 +53,7 @@ public class WebSocketService {
         messagingTemplate.convertAndSend("/topic/conversations/" + conversationId + "/read", response);
     }
 
-
+    public void sendLikePosts(Long userId, long postId) {
+        messagingTemplate.convertAndSend("/topic/posts/like" + postId, userId);
+    }
 }

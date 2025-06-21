@@ -3,6 +3,7 @@ package backend.example.mxh.entity;
 import backend.example.mxh.until.MessageType;
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -13,7 +14,7 @@ import java.util.List;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 public class Message extends AbstractEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

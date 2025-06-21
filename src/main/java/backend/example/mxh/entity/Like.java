@@ -2,6 +2,7 @@ package backend.example.mxh.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @Table(name = "likes", uniqueConstraints = {
@@ -11,7 +12,7 @@ import lombok.*;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
-@Builder
+@SuperBuilder
 public class Like extends AbstractEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

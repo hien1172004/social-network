@@ -6,33 +6,42 @@ spring:
   profiles:
     active: @spring.profiles.active@
 
-
 ## Health check
-#management:
-#  endpoints:
-#    web:
-#      exposure:
-#        include: '*'
-#  endpoint:
-#    health:
-#      probes:
-#        enabled: true
-#  health: # config for EKS
-#    livenessState:
-#      enabled: true
-#    readinessState:
-#      enabled: true
-#  prometheus:
-#    metrics:
-#      export:
-#        step: 5s
-#        enabled: true
+management:
+  endpoints:
+    web:
+      exposure:
+        include: '*'
+  endpoint:
+    health:
+      probes:
+        enabled: true
+  health: # config for EKS
+    livenessState:
+      enabled: true
+    readinessState:
+      enabled: true
+  prometheus:
+    metrics:
+      export:
+        step: 5s
+        enabled: true
 
 # Logging
-#logging:
-#  level:
-#    root: INFO
-#    web: OFF
-#    org.springframework: INFO
-#    org.apache: OFF
-#    kafka: OFF
+logging:
+  level:
+    root: INFO
+    web: OFF
+    org.springframework: INFO
+    org.apache: OFF
+    kafka: OFF
+    backend.example.mxh: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+  file:
+    name: logs/mxh-application.log
+    max-size: 10MB
+    max-history: 30

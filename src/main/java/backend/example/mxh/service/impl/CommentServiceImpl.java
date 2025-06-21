@@ -15,6 +15,7 @@ import backend.example.mxh.until.NotificationType;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -30,6 +31,7 @@ public class CommentServiceImpl implements CommentService {
     private final NotificationService notificationService;
 
     @Override
+    @Transactional
     public Long create(CommentDTO dto) {
         // Validate user và bài viết có tồn tại
         validateCommentData(dto);
@@ -42,7 +44,7 @@ public class CommentServiceImpl implements CommentService {
         NotificationDTO notificationDTO = NotificationDTO.builder()
                 .senderId(comment.getUser().getId())
                 .receiverId(comment.getPosts().getUser().getId())
-                .type(NotificationType.COMMENT.name()) // Enum
+                .type(NotificationType.COMMENT) // Enum
                 .build();
         if (!comment.getUser().getId().equals(comment.getPosts().getUser().getId())) {
             notificationService.createNotification(notificationDTO);
@@ -51,6 +53,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public void delete(Long id) {
         Comment comment = commentRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
         commentRepository.delete(comment);
@@ -66,6 +69,7 @@ public class CommentServiceImpl implements CommentService {
     }
 
     @Override
+    @Transactional
     public void update(Long id, CommentDTO dto) {
         log.info("Updating comment with id={} by userId={}, postId={}", id, dto.getUserId(), dto.getPostId());
         validateCommentData(dto);

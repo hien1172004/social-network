@@ -2,6 +2,7 @@ package backend.example.mxh.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import lombok.experimental.SuperBuilder;
 
 @Entity
 @AllArgsConstructor
@@ -11,7 +12,7 @@ import lombok.*;
 })
 @Getter
 @Setter
-@Builder
+@SuperBuilder
 public class ConversationMember extends AbstractEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -27,6 +28,5 @@ public class ConversationMember extends AbstractEntity {
     @JoinColumn(name = "user_id", nullable = false)
     private User member;
 
-    @Builder.Default
     private boolean admin = false;
 }

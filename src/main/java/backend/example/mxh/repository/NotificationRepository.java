@@ -6,9 +6,11 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
 
 import java.util.List;
 
+@Repository
 public interface NotificationRepository extends JpaRepository<Notification, Long> {
 
     Page<Notification> findByReceiver_Id(Long receiverId, Pageable pageable);
@@ -28,5 +30,5 @@ public interface NotificationRepository extends JpaRepository<Notification, Long
     select count(*) from Notification n
     where n.receiver.id = :receiverId AND n.isRead = false
 """)
-    long countByReceiverIdAndReadIsFalse(Long receiverId, boolean read);
+    long countByReceiverIdAndReadIsFalse(Long receiverId);
 }

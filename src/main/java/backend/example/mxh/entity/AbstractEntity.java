@@ -17,6 +17,7 @@ import java.util.Date;
 @Setter
 @AllArgsConstructor
 @NoArgsConstructor
+@SuperBuilder
 public class AbstractEntity implements Serializable {
 
     @Column(name = "created_at")

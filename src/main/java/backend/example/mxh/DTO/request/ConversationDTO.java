@@ -1,16 +1,24 @@
 package backend.example.mxh.DTO.request;
 
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.*;
 
 import java.util.List;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Getter
 @Setter
 @Builder
-@NoArgsConstructor
-@AllArgsConstructor
 public class ConversationDTO {
-    private String groupName;
+    @NotNull(message = "Member IDs are required")
     private List<Long> memberIds;
-    private Long creatorId;
+
+    @Size(max = 100, message = "Group name must not exceed 100 characters")
+    private String groupName;
+
+    private long creatorId;
+
+    private boolean isGroup;
 }

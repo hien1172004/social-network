@@ -1,6 +1,7 @@
 package backend.example.mxh.service.impl;
 
 import backend.example.mxh.DTO.request.LikeDTO;
+import backend.example.mxh.DTO.request.NotificationDTO;
 import backend.example.mxh.DTO.response.LikeUserResponse;
 import backend.example.mxh.DTO.response.PageResponse;
 import backend.example.mxh.entity.Like;
@@ -8,10 +9,14 @@ import backend.example.mxh.entity.Posts;
 import backend.example.mxh.entity.User;
 import backend.example.mxh.exception.ResourceNotFoundException;
 import backend.example.mxh.mapper.LikeMapper;
+import backend.example.mxh.mapper.PostsMapper;
 import backend.example.mxh.repository.LikeRepository;
 import backend.example.mxh.repository.PostsRepository;
 import backend.example.mxh.repository.UserRepository;
 import backend.example.mxh.service.LikeService;
+import backend.example.mxh.service.NotificationService;
+import backend.example.mxh.service.WebSocketService;
+import backend.example.mxh.until.NotificationType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,6 +36,7 @@ public class LikeServiceImpl implements LikeService {
     private final PostsRepository postsRepository;
     private final UserRepository userRepository;
     private final LikeMapper likeMapper;
+    private final NotificationService notificationService;
     @Override
     @Transactional
     public void toggleLike(LikeDTO likeDTO) {
@@ -46,12 +52,18 @@ public class LikeServiceImpl implements LikeService {
             log.info("Like deleted");
         }
         else {
-            Like like = Like.builder()
-                    .user(user)
-                    .posts(post)
-                    .build();
+            Like like = new Like();
+            like.setUser(user);
+            like.setPosts(post);
             likeRepository.save(like);
             log.info("Like created");
+
+            NotificationDTO notificationDTO = NotificationDTO.builder()
+                    .senderId(likeDTO.getUserId())
+                    .receiverId(post.getUser().getId())
+                    .type(NotificationType.LIKE)
+                    .build();
+            notificationService.createNotification(notificationDTO);
         }
     }
 
