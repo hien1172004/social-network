@@ -66,6 +66,7 @@ public class FriendServiceImpl implements FriendService {
                 .senderId(dto.getSenderId())
                 .receiverId(dto.getReceiverId())
                 .type(NotificationType.FRIEND_REQUEST) // Enum
+                .referenceId(sender.getId())
                 .build();
         notificationService.createNotification(notificationDTO);
         return friend.getId();

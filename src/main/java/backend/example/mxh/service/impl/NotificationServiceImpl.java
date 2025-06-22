@@ -94,8 +94,10 @@ public class NotificationServiceImpl implements NotificationService {
     public void markNotificationAsRead(Long notificationId) {
         Notification notification = notificationRepository.findById(notificationId)
                 .orElseThrow(() -> new ResourceNotFoundException("Notification not found"));
-        notification.setRead(true);
-        notificationRepository.save(notification);
+        if(!notification.isRead()) {
+            notification.setRead(true);
+            notificationRepository.save(notification);
+        }
         log.info("Marked notification as read: {}", notificationId);
     }
 

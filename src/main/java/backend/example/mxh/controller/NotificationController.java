@@ -3,7 +3,9 @@ package backend.example.mxh.controller;
 import backend.example.mxh.DTO.request.NotificationDTO;
 import backend.example.mxh.DTO.response.NotificationResponse;
 import backend.example.mxh.DTO.response.PageResponse;
+import backend.example.mxh.DTO.response.ResponseData;
 import backend.example.mxh.service.NotificationService;
+import backend.example.mxh.until.ResponseCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -19,11 +21,11 @@ public class NotificationController {
     private final NotificationService notificationService;
 
     // Gửi thông báo mới
-    @PostMapping
-    public ResponseEntity<Void> createNotification(@RequestBody @Valid NotificationDTO notificationDTO) {
-        notificationService.createNotification(notificationDTO);
-        return ResponseEntity.ok().build();
-    }
+//    @PostMapping
+//    public ResponseEntity<Void> createNotification(@RequestBody @Valid NotificationDTO notificationDTO) {
+//        notificationService.createNotification(notificationDTO);
+//        return ResponseEntity.ok().build();
+//    }
 
     // Lấy tất cả thông báo theo userId (có phân trang)
     @GetMapping("/{userId}")
@@ -45,9 +47,9 @@ public class NotificationController {
 
     // Đánh dấu 1 thông báo là đã đọc
     @PutMapping("/{notificationId}/read")
-    public ResponseEntity<Void> markAsRead(@PathVariable Long notificationId) {
+    public ResponseEntity<ResponseData<Void>> markAsRead(@PathVariable Long notificationId) {
         notificationService.markNotificationAsRead(notificationId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "notification read"));
     }
 
     // Đánh dấu tất cả thông báo là đã đọc

@@ -37,6 +37,9 @@ public class Notification extends AbstractEntity {
     @JoinColumn(name = "receiver_id", nullable = false)
     private User receiver;
 
+    @Enumerated(EnumType.STRING)
+    private NotificationType notificationType;
+
     @Column(name = "reference_id")
     private Long referenceId; // ID của bài viết, bình luận, tin nhắn, etc.
 }

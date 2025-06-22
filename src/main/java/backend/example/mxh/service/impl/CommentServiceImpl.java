@@ -58,6 +58,7 @@ public class CommentServiceImpl implements CommentService {
                     .senderId(comment.getUser().getId())
                     .receiverId(comment.getPosts().getUser().getId())
                     .type(NotificationType.COMMENT) // Enum
+                    .referenceId(comment.getId())
                     .build();
             notificationService.createNotification(notificationDTO);
         }

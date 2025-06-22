@@ -25,5 +25,6 @@ public class NotificationDTO {
     @NotNull(message = "Receiver ID is required")
     private Long receiverId;
 
+    @NotNull(message = "referenceId is required")
     private Long referenceId;
 }
