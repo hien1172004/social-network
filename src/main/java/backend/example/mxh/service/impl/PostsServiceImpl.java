@@ -25,6 +25,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 @Service
@@ -63,7 +64,7 @@ public class PostsServiceImpl implements PostsService {
         if (newImageDTOs != null && !newImageDTOs.isEmpty()) {
 
             // Xóa ảnh cũ trên Cloudinary và xóa khỏi danh sách hiện tại
-            List<PostImage> oldImages = posts.getPostImage();
+            Set<PostImage> oldImages = posts.getPostImage();
             if (oldImages != null && !oldImages.isEmpty()) {
                 for (PostImage oldImage : oldImages) {
                     try {
@@ -108,33 +109,16 @@ public void deletePost(long id) throws IOException {
 }
 
 @Override
+@Transactional
 public PostsResponse getPostById(long id) {
     Posts posts = postsRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post not found"));
 
-    PostsResponse postsResponse = postsMapper.toPostsResponse(posts);
-    List<PostImage> postImages = posts.getPostImage();
-    if (postImages != null && !postImages.isEmpty()) {
-        List<ImageResponse> imageResponses = postImages.stream()
-                .map(postImage -> {
-                    ImageResponse imageResponse = new ImageResponse();
-                    imageResponse.setPublicId(postImage.getPublicId());
-                    imageResponse.setImageUrl(postImage.getImageUrl());
-                    return imageResponse;
-                })
-                .toList();
-
-        postsResponse.setPostImage(imageResponses); // ❗ Gán vào response
-    }
-
-    return postsResponse;
+    return postsMapper.toPostsResponse(posts);
 }
 
 @Override
 public PageResponse<List<PostsResponse>> getAllPosts(int pageNo, int pageSize) {
-    int page = 0;
-    if (pageNo > 0) {
-        page = pageNo - 1;
-    }
+    int page = Math.max(0, pageNo - 1);
     Pageable pageable = PageRequest.of(page, pageSize, Sort.Direction.DESC, "createdAt");
     Page<Posts> posts = postsRepository.findAll(pageable);
     return PageResponse.<List<PostsResponse>>builder()

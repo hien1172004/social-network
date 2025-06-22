@@ -3,8 +3,10 @@ package backend.example.mxh.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.hibernate.annotations.BatchSize;
 
 import java.util.List;
+import java.util.Set;
 
 @Getter
 @Setter
@@ -24,13 +26,17 @@ public class Posts extends AbstractEntity{
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToMany(mappedBy = "posts", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<PostImage> postImage;
+    @OneToMany(mappedBy = "posts", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    @OrderBy("createdAt ASC") // hoặc DESC
+    @BatchSize(size = 20)
+    private Set<PostImage> postImage;
 
-    @OneToMany(mappedBy = "posts", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Comment> comments;
+    @BatchSize(size = 20)
+    @OneToMany(mappedBy = "posts", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<Comment> comments;
 
-    @OneToMany(mappedBy = "posts", cascade = CascadeType.ALL, orphanRemoval = true)
-    private List<Like> likes;
+    @BatchSize(size = 20)
+    @OneToMany(mappedBy = "posts", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.LAZY)
+    private Set<Like> likes;
 
 }

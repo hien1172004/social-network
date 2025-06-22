@@ -1,8 +1,11 @@
 package backend.example.mxh.mapper;
 
 import backend.example.mxh.DTO.request.PostsDTO;
+import backend.example.mxh.DTO.response.ImageResponse;
 import backend.example.mxh.DTO.response.PostsResponse;
+import backend.example.mxh.entity.PostImage;
 import backend.example.mxh.entity.Posts;
+import org.mapstruct.AfterMapping;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.mapstruct.MappingTarget;
@@ -20,7 +23,7 @@ public interface PostsMapper {
     @Mapping(target = "likeQuantity", expression = "java(posts.getLikes() != null ? Long.valueOf(posts.getLikes().size()) : 0L)")
     @Mapping(target = "commentQuantity", expression = "java(posts.getComments() != null ? Long.valueOf(posts.getComments().size()) : 0L)")
     @Mapping(target = "createdAt", source = "createdAt")
-    @Mapping(target = "postImage", ignore = true)
+    @Mapping(target = "postImage", source = "postImage")
     PostsResponse toPostsResponse(Posts posts);
 
     // Cập nhật Posts từ PostsDTO
@@ -29,4 +32,5 @@ public interface PostsMapper {
     @Mapping(target = "postImage", ignore = true)
     void updatePosts(@MappingTarget Posts posts, PostsDTO postsDTO);
 
+    ImageResponse toImageResponse(PostImage postImage);
 }
