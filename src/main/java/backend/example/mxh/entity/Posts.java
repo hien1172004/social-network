@@ -24,13 +24,13 @@ public class Posts extends AbstractEntity{
     @JoinColumn(name = "user_id", nullable = false)
     private User user;
 
-    @OneToMany(mappedBy = "posts")
+    @OneToMany(mappedBy = "posts", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<PostImage> postImage;
 
-    @OneToMany(mappedBy = "posts")
+    @OneToMany(mappedBy = "posts", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Comment> comments;
 
-    @OneToMany(mappedBy = "posts")
+    @OneToMany(mappedBy = "posts", cascade = CascadeType.ALL, orphanRemoval = true)
     private List<Like> likes;
 
 }

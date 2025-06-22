@@ -29,11 +29,13 @@ public class User extends AbstractEntity {
     @Column(nullable = false, unique = true, length = 50)
     private String email;
 
-    private String avatarUrl;
+    private String avatarUrl = "https://i.pinimg.com/originals/c6/e5/65/c6e56503cfdd87da299f72dc416023d4.jpg";
 
     private String publicId;
 
     private String fullName;
+
+    private String phoneNumber;
 
     private String bio;
 
@@ -52,7 +54,7 @@ public class User extends AbstractEntity {
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)
     @Builder.Default
-    private AccountStatus accountStatus = AccountStatus.INACTIVE;
+    private AccountStatus accountStatus = AccountStatus.ACTIVE;
 
     @OneToMany(mappedBy = "user")
     private List<Posts> posts;

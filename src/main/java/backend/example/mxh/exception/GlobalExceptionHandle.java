@@ -17,6 +17,21 @@ import java.util.Date;
 @RestControllerAdvice
 @Slf4j
 public class GlobalExceptionHandle {
+
+    @ExceptionHandler(Exception.class)
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+    public ErrorResponse handleUnknownException(Exception e, WebRequest request) {
+        log.error("❌ Unknown internal error: ", e); // log full stack trace
+
+        ErrorResponse error = new ErrorResponse();
+        error.setTimestamp(new Date());
+        error.setStatus(HttpStatus.INTERNAL_SERVER_ERROR.value());
+        error.setPath(request.getDescription(false).replace("uri=", ""));
+        error.setError(HttpStatus.INTERNAL_SERVER_ERROR.getReasonPhrase());
+        error.setMessage(e.getMessage());
+
+        return error;
+    }
     // Xử lý MethodArgumentNotValidException và ConstraintViolationException
     @ExceptionHandler({MethodArgumentNotValidException.class, ConstraintViolationException.class, DataIntegrityViolationException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)

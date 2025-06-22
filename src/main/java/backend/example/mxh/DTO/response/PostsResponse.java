@@ -3,6 +3,7 @@ package backend.example.mxh.DTO.response;
 import lombok.*;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Setter
 @Getter
@@ -15,5 +16,6 @@ public class PostsResponse {
     private Long userId;
     private Long likeQuantity;
     private Long commentQuantity;
+    private List<ImageResponse> postImage;
     private LocalDateTime createdAt;
 }

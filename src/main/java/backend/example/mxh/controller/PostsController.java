@@ -1,6 +1,7 @@
 package backend.example.mxh.controller;
 
 import backend.example.mxh.DTO.request.PostsDTO;
+import backend.example.mxh.DTO.response.PageResponse;
 import backend.example.mxh.DTO.response.PostsResponse;
 import backend.example.mxh.DTO.response.ResponseData;
 import backend.example.mxh.service.PostsService;
@@ -44,12 +45,15 @@ public class PostsController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<ResponseData<List<PostsResponse>>> getPostsByUser(@PathVariable long userId) {
-        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Lấy bài viết theo user thành công", postsService.getPostsByUserId(userId)));
+    public ResponseEntity<ResponseData<PageResponse<List<PostsResponse>>>> getPostsByUser(@PathVariable long userId,
+                                                                                          @RequestParam(defaultValue = "1", required = false) int pageNo,
+                                                                                          @RequestParam(defaultValue = "10", required = false) int pageSize) {
+        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Lấy bài viết theo user thành công", postsService.getPostsByUserId(pageNo, pageSize, userId)));
     }
 
     @GetMapping
-    public ResponseEntity<ResponseData<List<PostsResponse>>> getAllPosts() {
-        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Lấy danh sách bài viết thành công", postsService.getAllPosts()));
+    public ResponseEntity<ResponseData<PageResponse<List<PostsResponse>>>> getAllPosts(@RequestParam(defaultValue = "1", required = false) int pageNo,
+                                                                                       @RequestParam(defaultValue = "10", required = false) int pageSize) {
+        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Lấy danh sách bài viết thành công", postsService.getAllPosts(pageNo, pageSize)));
     }
 }

@@ -18,11 +18,12 @@ public class AddUserDTO {
     
     @NotBlank(message = "Full name is required")
     @Size(max = 100, message = "Full name must not exceed 100 characters")
-    private String fullname;
+    private String fullName;
     
     @Pattern(regexp = "^[0-9]{10,11}$", message = "Phone number must be 10-11 digits")
     private String phoneNumber;
-    
+
+    private String password;
     @NotBlank(message = "Email is required")
     @Email(message = "Email format is invalid")
     private String email;

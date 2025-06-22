@@ -6,6 +6,7 @@ import backend.example.mxh.DTO.request.UpdateUserDTO;
 import backend.example.mxh.DTO.response.PageResponse;
 import backend.example.mxh.DTO.response.UserResponse;
 import backend.example.mxh.entity.User;
+import backend.example.mxh.exception.EmailAlreadyExistsException;
 import backend.example.mxh.exception.ResourceNotFoundException;
 import backend.example.mxh.mapper.UserMapper;
 import backend.example.mxh.repository.UserRepository;
@@ -47,7 +48,7 @@ public class UserServiceImpl implements UserService {
 
         // Kiểm tra email hoặc username đã tồn tại
         if (userRepository.existsByEmail(userDTO.getEmail())) {
-            throw new IllegalArgumentException("Email đã tồn tại");
+            throw new EmailAlreadyExistsException("Email đã tồn tại");
         }
         User user = userMapper.toUser2(userDTO);
         log.info("Adding user: {}", user);
@@ -68,9 +69,18 @@ public class UserServiceImpl implements UserService {
     @Transactional
     public void updateAvatar(long userId, ImageDTO dto) throws IOException {
         User user = userRepository.findById(userId).orElseThrow(() -> new ResourceNotFoundException("not found user"));
-        if(!user.getPublicId().isEmpty()){
-            cloudinary.deleteImage(user.getPublicId());
+        log.info("updating avatar:1 {}", user);
+        try {
+            if (user.getPublicId() != null && !user.getPublicId().isEmpty()
+                    && user.getAvatarUrl() != null && !user.getAvatarUrl().isEmpty()) {
+                cloudinary.deleteImage(user.getPublicId());
+                log.info("deleted image from cloudinary");
+            }
+
+        } catch (Exception e) {
+            log.warn("Failed to delete image from cloudinary: {}", e.getMessage());
         }
+        log.info("updating avatar121221: {}", dto);
         user.setPublicId(dto.getPublicId());
         user.setAvatarUrl(dto.getImageUrl());
         userRepository.save(user);
@@ -110,7 +120,7 @@ public class UserServiceImpl implements UserService {
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.ASC, "username"));
         Page<User> users;
         if(key != null && !key.isEmpty()){
-            users = userRepository.findByUsernameContainingIgnoreCaseOrFullNameContainingIgnoreCase(pageable, key);
+            users = userRepository.findByUsernameContainingIgnoreCaseOrFullNameContainingIgnoreCase(pageable, key, AccountStatus.ACTIVE);
         }
         else{
             users = userRepository.findAll(pageable);

@@ -1,6 +1,7 @@
 package backend.example.mxh.service;
 
 import backend.example.mxh.DTO.request.PostsDTO;
+import backend.example.mxh.DTO.response.PageResponse;
 import backend.example.mxh.DTO.response.PostsResponse;
 
 import java.io.IOException;
@@ -15,7 +16,7 @@ public interface PostsService {
 
     PostsResponse getPostById(long id);
 
-    List<PostsResponse> getAllPosts();
+    PageResponse<List<PostsResponse>> getAllPosts(int pageNo, int pageSize);
 
-    List<PostsResponse> getPostsByUserId(long userId);
+    PageResponse<List<PostsResponse>> getPostsByUserId(int pageNo, int pageSize, long userId);
 }

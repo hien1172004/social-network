@@ -1,6 +1,7 @@
 package backend.example.mxh.repository;
 
 import backend.example.mxh.entity.User;
+import backend.example.mxh.until.AccountStatus;
 import backend.example.mxh.until.UserStatus;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
@@ -17,9 +18,10 @@ import java.util.List;
 public interface UserRepository extends JpaRepository<User, Long> {
     @Query("""
     SELECT distinct u from User u where LOWER(u.fullName) like lower(CONCAT('%', :key, '%')) 
-    OR lower(u.fullName) like lower(CONCAT('%', :key, '%')) 
+    OR lower(u.username) like lower(CONCAT('%', :key, '%')) 
+    AND u.accountStatus = :accountStatus
     """)
-    Page<User> findByUsernameContainingIgnoreCaseOrFullNameContainingIgnoreCase(Pageable pageable ,@Param("key") String key);
+    Page<User> findByUsernameContainingIgnoreCaseOrFullNameContainingIgnoreCase(Pageable pageable ,@Param("key") String key, @Param("accountStatus") AccountStatus accountStatus);
 
     Page<User> findByIdIn(Collection<Long> ids, Pageable pageable);
 

@@ -20,6 +20,7 @@ public interface PostsMapper {
     @Mapping(target = "likeQuantity", expression = "java(posts.getLikes() != null ? Long.valueOf(posts.getLikes().size()) : 0L)")
     @Mapping(target = "commentQuantity", expression = "java(posts.getComments() != null ? Long.valueOf(posts.getComments().size()) : 0L)")
     @Mapping(target = "createdAt", source = "createdAt")
+    @Mapping(target = "postImage", ignore = true)
     PostsResponse toPostsResponse(Posts posts);
 
     // Cập nhật Posts từ PostsDTO
