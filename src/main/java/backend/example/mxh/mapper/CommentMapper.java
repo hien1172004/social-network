@@ -15,9 +15,10 @@ public interface CommentMapper {
 
     @Mapping(source = "user.username", target = "username")
     @Mapping(source = "user.avatarUrl", target = "avatarUrl")
+    @Mapping(source = "user.id", target = "userId")
     CommentResponse toResponse(Comment comment);
 
-    @Mapping(target = "user.id", source = "userId")
-    @Mapping(target = "posts.id", source = "postId")
+    @Mapping(target = "user.id", ignore = true)
+    @Mapping(target = "posts.id", ignore = true)
     void updateComment(@MappingTarget Comment comment, CommentDTO dto);
 }

@@ -4,6 +4,8 @@ import backend.example.mxh.DTO.request.CommentDTO;
 import backend.example.mxh.DTO.request.NotificationDTO;
 import backend.example.mxh.DTO.response.CommentResponse;
 import backend.example.mxh.entity.Comment;
+import backend.example.mxh.entity.Posts;
+import backend.example.mxh.entity.User;
 import backend.example.mxh.exception.ResourceNotFoundException;
 import backend.example.mxh.mapper.CommentMapper;
 import backend.example.mxh.repository.CommentRepository;
@@ -34,19 +36,29 @@ public class CommentServiceImpl implements CommentService {
     @Transactional
     public Long create(CommentDTO dto) {
         // Validate user và bài viết có tồn tại
-        validateCommentData(dto);
-        Comment comment = commentMapper.toComment(dto);
+        User user = userRepository.findById(dto.getUserId())
+                .orElseThrow(() -> new ResourceNotFoundException("User not found"));
+
+        Posts post = postsRepository.findById(dto.getPostId())
+                .orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+
+
+        Comment comment = Comment.builder()
+                .user(user)
+                .posts(post)
+                .content(dto.getContent())
+                .build();
+
         commentRepository.save(comment);
         log.info("Create comment {}", comment);
 
-
-        // Gửi thông báo sau khi gửi lời mời
-        NotificationDTO notificationDTO = NotificationDTO.builder()
-                .senderId(comment.getUser().getId())
-                .receiverId(comment.getPosts().getUser().getId())
-                .type(NotificationType.COMMENT) // Enum
-                .build();
         if (!comment.getUser().getId().equals(comment.getPosts().getUser().getId())) {
+            // Gửi thông báo sau khi gửi lời mời
+            NotificationDTO notificationDTO = NotificationDTO.builder()
+                    .senderId(comment.getUser().getId())
+                    .receiverId(comment.getPosts().getUser().getId())
+                    .type(NotificationType.COMMENT) // Enum
+                    .build();
             notificationService.createNotification(notificationDTO);
         }
         return comment.getId();

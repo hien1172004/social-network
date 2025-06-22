@@ -16,5 +16,6 @@ public class CommentResponse {
     private String content;
     private String username;
     private String avatarUrl;
+    private Long userId;
     private LocalDateTime createdAt;
 }
