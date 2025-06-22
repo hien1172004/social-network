@@ -13,13 +13,13 @@ import java.util.List;
 // ConversationService.java
 public interface ConversationService {
     // Tạo cuộc trò chuyện mới
-    ConversationResponse createConversation(ConversationDTO conversationDTO);
+    Long createConversation(ConversationDTO conversationDTO);
     
     // Lấy thông tin cuộc trò chuyện
     ConversationResponse getConversationById(Long id, Long userId);
     
     // Lấy danh sách cuộc trò chuyện của user
-    List<ConversationResponse> getConversationsByUserId(Long userId);
+    PageResponse<List<ConversationResponse>> getConversationsByUserId(int pageNo, int pageSize, Long userId);
     
     // Thêm thành viên vào cuộc trò chuyện
     void addMemberToConversation(AddMemberDTO addMemberDTO);

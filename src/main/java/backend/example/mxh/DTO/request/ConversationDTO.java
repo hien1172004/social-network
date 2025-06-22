@@ -20,5 +20,4 @@ public class ConversationDTO {
 
     private long creatorId;
 
-    private boolean isGroup;
 }

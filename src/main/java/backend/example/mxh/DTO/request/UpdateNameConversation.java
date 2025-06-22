@@ -18,6 +18,6 @@ public class UpdateNameConversation {
     @Size(max = 100, message = "Group name must not exceed 100 characters")
     private String groupName;
 
-    @NotNull(message = "User ID is required")
-    private Long userId;
+    @NotNull(message = "Requester ID is required")
+    private Long requesterId;
 }

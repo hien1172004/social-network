@@ -14,7 +14,7 @@ public class ConversationResponse {
     private Long id;
     private boolean isGroup;
     private String groupName;
-    private List<UserResponse> members;
+    private List<MemberResponse> members;
     private MessageResponse lastMessage;
     private int unreadCount;
     private LocalDateTime updatedAt;

@@ -24,9 +24,9 @@ public class ConversationController {
     private final ConversationService conversationService;
 
     @PostMapping
-    public ResponseEntity<ResponseData<ConversationResponse>> createConversation(@RequestBody @Valid ConversationDTO dto) {
-        ConversationResponse response = conversationService.createConversation(dto);
-        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Tạo cuộc trò chuyện thành công", response));
+    public ResponseEntity<ResponseData<Long>> createConversation(@RequestBody @Valid ConversationDTO dto) {
+        Long id = conversationService.createConversation(dto);
+        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Tạo cuộc trò chuyện thành công", id));
     }
 
     @GetMapping("/{id}")
@@ -38,8 +38,10 @@ public class ConversationController {
     }
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<ResponseData<List<ConversationResponse>>> getConversationsByUser(@PathVariable Long userId) {
-        List<ConversationResponse> response = conversationService.getConversationsByUserId(userId);
+    public ResponseEntity<ResponseData<PageResponse<List<ConversationResponse>>>> getConversationsByUser(@PathVariable Long userId,
+                                                                                                         @RequestParam(defaultValue = "1", required = false) int pageNo,
+                                                                                                         @RequestParam(defaultValue = "10", required = false) int pageSize) {
+        PageResponse<List<ConversationResponse>> response = conversationService.getConversationsByUserId(pageNo, pageSize, userId);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Danh sách cuộc trò chuyện", response));
     }
 
