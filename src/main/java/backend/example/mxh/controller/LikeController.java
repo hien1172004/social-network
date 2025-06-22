@@ -3,7 +3,9 @@ package backend.example.mxh.controller;
 import backend.example.mxh.DTO.request.LikeDTO;
 import backend.example.mxh.DTO.response.LikeUserResponse;
 import backend.example.mxh.DTO.response.PageResponse;
+import backend.example.mxh.DTO.response.ResponseData;
 import backend.example.mxh.service.LikeService;
+import backend.example.mxh.until.ResponseCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -20,9 +22,9 @@ public class LikeController {
 
     // Toggle like (like nếu chưa có, unlike nếu đã like)
     @PostMapping("/toggle")
-    public ResponseEntity<Void> toggleLike(@RequestBody @Valid LikeDTO likeDTO) {
+    public ResponseEntity<ResponseData<Void>> toggleLike(@RequestBody @Valid LikeDTO likeDTO) {
         likeService.toggleLike(likeDTO);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "success"));
     }
 
     // Đếm số lượt like cho một bài post

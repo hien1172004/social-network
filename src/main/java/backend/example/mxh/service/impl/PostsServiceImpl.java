@@ -111,7 +111,7 @@ public void deletePost(long id) throws IOException {
 @Override
 @Transactional
 public PostsResponse getPostById(long id) {
-    Posts posts = postsRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+    Posts posts = postsRepository.findWithDetailsById(id).orElseThrow(() -> new ResourceNotFoundException("Post not found"));
 
     return postsMapper.toPostsResponse(posts);
 }

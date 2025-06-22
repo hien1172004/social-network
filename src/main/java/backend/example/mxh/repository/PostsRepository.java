@@ -22,7 +22,7 @@ public interface PostsRepository extends JpaRepository<Posts, Long> {
             "comments",          // bình luận
             "comments.user"      // người bình luận
     })
-    Optional<Posts> findById(@NonNull Long id);
+    Optional<Posts> findWithDetailsById(Long id);
 
 
 

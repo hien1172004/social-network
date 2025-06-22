@@ -58,12 +58,14 @@ public class LikeServiceImpl implements LikeService {
             likeRepository.save(like);
             log.info("Like created");
 
-            NotificationDTO notificationDTO = NotificationDTO.builder()
-                    .senderId(likeDTO.getUserId())
-                    .receiverId(post.getUser().getId())
-                    .type(NotificationType.LIKE)
-                    .build();
-            notificationService.createNotification(notificationDTO);
+            if (!likeDTO.getUserId().equals(post.getUser().getId())) {
+                NotificationDTO notificationDTO = NotificationDTO.builder()
+                        .senderId(likeDTO.getUserId())
+                        .receiverId(post.getUser().getId())
+                        .type(NotificationType.LIKE)
+                        .build();
+                notificationService.createNotification(notificationDTO);
+            }
         }
     }
 
