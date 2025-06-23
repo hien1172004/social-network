@@ -36,4 +36,6 @@ public interface MessageStatusRepository extends JpaRepository<MessageStatus, Lo
     """)
     Long countMessageNotRead(@Param("conversationId") Long conversationId,
                              @Param("userId") Long userId);
+
+    MessageStatus findByMessage_Id(Long messageId);
 }

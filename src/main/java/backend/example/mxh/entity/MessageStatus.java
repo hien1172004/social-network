@@ -31,4 +31,6 @@ public class MessageStatus extends AbstractEntity {
     // Trạng thái: Đã đọc hay chưa
     @Column(name = "is_read", nullable = false)
     private boolean isRead = false;
+
+    private boolean deleted = false;
 }

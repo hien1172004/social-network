@@ -17,5 +17,7 @@ public class MessageResponse {
     private Long conversationId;
     private UserResponse sender;
     private LocalDateTime createdAt;
-    private boolean isRead;
+    private boolean read;
+    private boolean revoked;
+
 }

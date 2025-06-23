@@ -14,7 +14,6 @@ import java.time.LocalDateTime;
 @NoArgsConstructor
 @AllArgsConstructor
 public class MessageDTO {
-    private Long id;
     @NotBlank(message = "Content is required")
     @Size(max = 1000, message = "Message content must not exceed 1000 characters")
     private String content;
@@ -24,5 +23,4 @@ public class MessageDTO {
     private Long conversationId;
     @NotNull(message = "Sender ID is required")
     private Long senderId;
-    private LocalDateTime createdAt;
 }

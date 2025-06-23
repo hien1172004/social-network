@@ -3,12 +3,15 @@ package backend.example.mxh.controller;
 import backend.example.mxh.DTO.request.MessageDTO;
 import backend.example.mxh.DTO.response.MessageResponse;
 import backend.example.mxh.DTO.response.PageResponse;
+import backend.example.mxh.DTO.response.ResponseData;
 import backend.example.mxh.service.MessageService;
+import backend.example.mxh.until.ResponseCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
 
 @RestController
@@ -20,8 +23,8 @@ public class MessageController {
 
     // Gửi tin nhắn mới
     @PostMapping
-    public ResponseEntity<MessageResponse> sendMessage(@RequestBody @Valid MessageDTO messageDTO) {
-        return ResponseEntity.ok(messageService.sendMessage(messageDTO));
+    public ResponseEntity<ResponseData<Long>> sendMessage(@RequestBody @Valid MessageDTO messageDTO) {
+        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "gửi tin nhắn thành công", messageService.sendMessage(messageDTO)));
     }
 
     // Lấy danh sách tin nhắn theo conversationId cua user (có phân trang)
@@ -36,18 +39,28 @@ public class MessageController {
 
     // Đánh dấu một tin nhắn là đã đọc
     @PutMapping("/{messageId}/read/{userId}")
-    public ResponseEntity<Void> markMessageAsRead(@PathVariable Long messageId, @PathVariable Long userId) {
+    public ResponseEntity<ResponseData<Void>> markMessageAsRead(@PathVariable Long messageId, @PathVariable Long userId) {
         messageService.markMessageAsRead(messageId, userId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "tin  nhẵn đã được đọc"));
     }
 
     // Đánh dấu tất cả tin nhắn trong một cuộc trò chuyện là đã đọc
     @PutMapping("/conversation/{conversationId}/read-all/{userId}")
-    public ResponseEntity<Void> markAllMessagesAsRead(@PathVariable Long conversationId, @PathVariable Long userId) {
+    public ResponseEntity<ResponseData<Void>> markAllMessagesAsRead(@PathVariable Long conversationId, @PathVariable Long userId) {
         messageService.markAllMessagesAsRead(conversationId, userId);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Tất cả tin nhẵn đã được đọc"));
     }
-
+    // Thu hồi tin nhắn
+    @PutMapping("/revoke/message/{messageId}/user/{userId}")
+    public ResponseEntity<ResponseData<Void>> revokeMessage(@PathVariable Long messageId, @PathVariable Long userId) throws AccessDeniedException {
+        messageService.revokeMessage(messageId, userId);
+        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Tin nhắn đã được thu hồi"));
+    }
+    @PutMapping("/delete/message/{messageId}/user/{userId}")
+    public ResponseEntity<ResponseData<Void>> deleteMessageForUser(@PathVariable Long messageId, @PathVariable Long userId) {
+        messageService.deleteMessage(messageId, userId);
+        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Tin nhắn đã được thu hồi"));
+    }
     // Đếm số tin nhắn chưa đọc trong cuộc trò chuyện
     @GetMapping("/conversation/{conversationId}/unread-count/{userId}")
     public ResponseEntity<Long> countUnreadMessages(@PathVariable Long conversationId, @PathVariable Long userId) {

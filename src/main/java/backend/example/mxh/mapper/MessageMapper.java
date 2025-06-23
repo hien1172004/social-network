@@ -15,6 +15,19 @@ public interface MessageMapper {
 
     @Mapping(target = "conversationId", source = "conversation.id")
     @Mapping(target = "sender", source = "sender")
-    @Mapping(target = "isRead", expression = "java(message.getStatuses().stream().anyMatch(status -> status.isRead()))")
+    @Mapping(target = "revoked", source = "revoked")
     MessageResponse toResponse(Message message);
+
+    // Bạn tự định nghĩa method này, KHÔNG dùng @Mapping
+    default MessageResponse toResponse(Message message, Long userId) {
+        MessageResponse response = toResponse(message); // dùng method MapStruct generate
+        if(response.isRevoked()){
+            response.setContent("Tin nhắn đã bị thu hồi");
+        }
+        boolean isRead = message.getStatuses() != null &&
+                message.getStatuses().stream()
+                        .anyMatch(status -> status.getUser().getId().equals(userId) && status.isRead());
+        response.setRead(isRead);
+        return response;
+    }
 }

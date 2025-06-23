@@ -22,7 +22,12 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             limit 1
             """, nativeQuery = true)
     Message findTopMessage(@Param("conversationId") Long conversationId);
-
+    @Query("""
+select m from Message m
+join m.statuses ms
+where m.conversation.id = ?1 and m.createdAt > ?2 
+and ms.deleted = false
+""")
     Page<Message> findByConversation_IdAndCreatedAtAfter(Long conversation_id, LocalDateTime createdAt, Pageable pageable);
 }
 

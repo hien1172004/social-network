@@ -1,6 +1,7 @@
 package backend.example.mxh.service.impl;
 
 import backend.example.mxh.DTO.request.MessageDTO;
+import backend.example.mxh.DTO.response.MemberResponse;
 import backend.example.mxh.DTO.response.MessageReadResponse;
 import backend.example.mxh.DTO.response.MessageResponse;
 import backend.example.mxh.DTO.response.PageResponse;
@@ -20,8 +21,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
+import java.nio.file.AccessDeniedException;
 import java.util.List;
-
 
 
 @Service
@@ -38,7 +39,7 @@ public class MessageServiceImpl implements MessageService {
     private final ConversationMemberRepository conversationMemberRepository;
 
     @Override
-    public MessageResponse sendMessage(MessageDTO messageDTO) {
+    public long sendMessage(MessageDTO messageDTO) {
         Conversation conversation = conversationRepository.findById(messageDTO.getConversationId())
                 .orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
         User sender = userRepository.findById(messageDTO.getSenderId())
@@ -46,7 +47,7 @@ public class MessageServiceImpl implements MessageService {
 
         Message message = messageMapper.toMessage(messageDTO);
         message.setConversation(conversation);
-        message.setSender(sender);  
+        message.setSender(sender);
         // Tạo MessageStatus cho tất cả thành viên trong cuộc trò chuyện
         Message finalMessage = message;
         List<MessageStatus> statuses = conversation.getMembers().stream()
@@ -75,13 +76,13 @@ public class MessageServiceImpl implements MessageService {
                     .forEach(user -> webSocketService.sendPrivateMessage(user.getId(), response));
         }
 
-        return response;
+        return message.getId();
     }
 
     @Override
-    public PageResponse<List<MessageResponse>> getMessagesByConversationId(Long conversationId, Long userId,  int pageNo, int pageSize) {
+    public PageResponse<List<MessageResponse>> getMessagesByConversationId(Long conversationId, Long userId, int pageNo, int pageSize) {
         int page = 0;
-        if(pageNo > 0){
+        if (pageNo > 0) {
             page = pageNo - 1;
         }
         ConversationMember member = conversationMemberRepository.findByConversation_IdAndMember_Id(conversationId, userId).orElseThrow(()
@@ -95,10 +96,11 @@ public class MessageServiceImpl implements MessageService {
         } else {
             messages = messageRepository.findByConversation_Id(conversationId, pageable);
         }
+
         return PageResponse.<List<MessageResponse>>builder()
                 .pageNo(pageNo)
                 .pageSize(pageSize)
-                .items(messages.stream().map(messageMapper::toResponse).toList())
+                .items(messages.stream().map(message -> messageMapper.toResponse(message, userId)).toList())
                 .totalElements(messages.getTotalElements())
                 .totalPages(messages.getTotalPages())
                 .build();
@@ -150,5 +152,29 @@ public class MessageServiceImpl implements MessageService {
     @Override
     public long countUnreadMessages(Long conversationId, Long userId) {
         return messageStatusRepository.countMessageNotRead(conversationId, userId);
+    }
+
+    @Override
+    public void revokeMessage(Long messageId, Long userId) throws AccessDeniedException {
+        Message message = messageRepository.findById(messageId)
+                .orElseThrow(() -> new ResourceNotFoundException("Message not found"));
+
+        // Kiểm tra quyền: chỉ cho phép người gửi hoặc admin thu hồi
+        if (!message.getSender().getId().equals(userId)) {
+            throw new AccessDeniedException("You can only revoke your own messages");
+        }
+
+        message.setRevoked(true);
+        messageRepository.save(message);
+        log.info("Message revoked");
+    }
+
+    @Override
+    public void deleteMessage(Long messageId, Long userId) {
+        MessageStatus status = messageStatusRepository.findByMessage_IdAndUser_Id(messageId, userId).orElseThrow(()
+        -> new ResourceNotFoundException("MessageStatus not found"));
+        status.setDeleted(true);
+        messageStatusRepository.save(status);
+        log.info("Message deleted");
     }
 }

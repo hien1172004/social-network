@@ -24,6 +24,8 @@ public class Message extends AbstractEntity {
     @Column(nullable = false, columnDefinition = "TEXT")
     private String content;
 
+    private boolean revoked = false;
+
     @Column(nullable = false)
     @Enumerated(EnumType.STRING)
     @Builder.Default
@@ -39,6 +41,8 @@ public class Message extends AbstractEntity {
     private User sender;
 
     // Quan hệ: Một tin nhắn có nhiều trạng thái đọc (1-n với MessageStatus)
-    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "message", cascade = CascadeType.ALL, fetch = FetchType.EAGER, orphanRemoval = true)
     private List<MessageStatus> statuses = new ArrayList<>();
+
+
 }
