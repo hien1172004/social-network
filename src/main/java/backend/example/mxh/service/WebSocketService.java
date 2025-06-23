@@ -1,10 +1,7 @@
 package backend.example.mxh.service;
 
 import backend.example.mxh.DTO.request.UserStatusDTO;
-import backend.example.mxh.DTO.response.MessageReadResponse;
-import backend.example.mxh.DTO.response.MessageResponse;
-import backend.example.mxh.DTO.response.NotificationResponse;
-import backend.example.mxh.DTO.response.UserResponse;
+import backend.example.mxh.DTO.response.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -55,5 +52,10 @@ public class WebSocketService {
 
     public void sendLikePosts(Long userId, long postId) {
         messagingTemplate.convertAndSend("/topic/posts/like" + postId, userId);
+    }
+
+    public void sendRevokeMessage(Long conversationId, Long messageId, Long revokedBy) {
+        MessageRevokedEvent event = new MessageRevokedEvent(conversationId, messageId, revokedBy);
+        messagingTemplate.convertAndSend("/topic/conversation/" + conversationId + "/revoke", event);
     }
 }

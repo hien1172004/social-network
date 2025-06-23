@@ -167,6 +167,9 @@ public class MessageServiceImpl implements MessageService {
         message.setRevoked(true);
         messageRepository.save(message);
         log.info("Message revoked");
+
+        // Gửi sự kiện WebSocket
+        webSocketService.sendRevokeMessage(message.getConversation().getId(), message.getId(), userId);
     }
 
     @Override

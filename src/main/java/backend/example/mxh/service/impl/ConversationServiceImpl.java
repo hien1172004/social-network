@@ -3,6 +3,7 @@ package backend.example.mxh.service.impl;
 import backend.example.mxh.DTO.request.*;
 import backend.example.mxh.DTO.response.ConversationResponse;
 import backend.example.mxh.DTO.response.MemberResponse;
+import backend.example.mxh.DTO.response.MessageResponse;
 import backend.example.mxh.DTO.response.PageResponse;
 import backend.example.mxh.entity.*;
 import backend.example.mxh.exception.InvalidDataException;
@@ -12,6 +13,7 @@ import backend.example.mxh.mapper.ConversationMemberMapper;
 import backend.example.mxh.mapper.MessageMapper;
 import backend.example.mxh.repository.*;
 import backend.example.mxh.service.ConversationService;
+import backend.example.mxh.service.WebSocketService;
 import backend.example.mxh.until.MessageType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -41,6 +43,7 @@ public class ConversationServiceImpl implements ConversationService {
     private final ConversationMemberMapper conversationMemberMapper;
     private final MessageStatusRepository messageStatusRepository;
     private final MessageMapper messageMapper;
+    private final WebSocketService webSocketService;
     @Override
     @Transactional
     public Long createConversation(ConversationDTO conversationDTO) {
@@ -160,6 +163,11 @@ public class ConversationServiceImpl implements ConversationService {
                     .build();
 
             messageRepository.save(systemMessage);
+
+            // Gửi WebSocket cho các thành viên trong nhóm về tin nhắn hệ thống mới
+            MessageResponse messageResponse = messageMapper.toResponse(systemMessage, user.getId());
+            webSocketService.sendMessage(conversation.getId(), messageResponse);
+
         }
         log.info("Add member to conversation");
 
@@ -196,6 +204,10 @@ public class ConversationServiceImpl implements ConversationService {
                 .build();
 
         messageRepository.save(systemMessage);
+
+        // Gửi WebSocket cho các thành viên trong nhóm về tin nhắn hệ thống mới
+        MessageResponse messageResponse = messageMapper.toResponse(systemMessage, requester.getId());
+        webSocketService.sendMessage(conversation.getId(), messageResponse);
     }
 
     @Override
@@ -220,6 +232,10 @@ public class ConversationServiceImpl implements ConversationService {
                 .build();
 
         messageRepository.save(systemMessage);
+
+        // Gửi WebSocket cho các thành viên trong nhóm về tin nhắn hệ thống mới
+        MessageResponse messageResponse = messageMapper.toResponse(systemMessage, requester.getId());
+        webSocketService.sendMessage(conversation.getId(), messageResponse);
     }
 
 
@@ -278,6 +294,11 @@ public class ConversationServiceImpl implements ConversationService {
                 .build();
 
         messageRepository.save(systemMessage);
+
+        // Gửi WebSocket cho các thành viên trong nhóm về tin nhắn hệ thống mới
+        MessageResponse messageResponse = messageMapper.toResponse(systemMessage, userId);
+        webSocketService.sendMessage(conversation.getId(), messageResponse);
+
         // Nếu không còn ai trong nhóm, xoá nhóm luôn
         long memberCount =conversationMemberRepository.countByConversation_Id(conversationId);
 

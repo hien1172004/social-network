@@ -16933,3 +16933,405 @@ Caused by: org.hibernate.NonUniqueResultException: Query did not return a unique
     where
         u1_0.status=? 
         and u1_0.last_active<?
+2025-06-23 23:03:38 [MessageBroker-2] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.account_status,
+        u1_0.avatar_url,
+        u1_0.bio,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.last_active,
+        u1_0.password,
+        u1_0.phone_number,
+        u1_0.public_id,
+        u1_0.role,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        user u1_0 
+    where
+        u1_0.status=? 
+        and u1_0.last_active<?
+2025-06-23 23:04:38 [MessageBroker-7] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.account_status,
+        u1_0.avatar_url,
+        u1_0.bio,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.last_active,
+        u1_0.password,
+        u1_0.phone_number,
+        u1_0.public_id,
+        u1_0.role,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        user u1_0 
+    where
+        u1_0.status=? 
+        and u1_0.last_active<?
+2025-06-23 23:05:38 [MessageBroker-4] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.account_status,
+        u1_0.avatar_url,
+        u1_0.bio,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.last_active,
+        u1_0.password,
+        u1_0.phone_number,
+        u1_0.public_id,
+        u1_0.role,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        user u1_0 
+    where
+        u1_0.status=? 
+        and u1_0.last_active<?
+2025-06-23 23:06:38 [MessageBroker-8] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.account_status,
+        u1_0.avatar_url,
+        u1_0.bio,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.last_active,
+        u1_0.password,
+        u1_0.phone_number,
+        u1_0.public_id,
+        u1_0.role,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        user u1_0 
+    where
+        u1_0.status=? 
+        and u1_0.last_active<?
+2025-06-23 23:07:38 [MessageBroker-1] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.account_status,
+        u1_0.avatar_url,
+        u1_0.bio,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.last_active,
+        u1_0.password,
+        u1_0.phone_number,
+        u1_0.public_id,
+        u1_0.role,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        user u1_0 
+    where
+        u1_0.status=? 
+        and u1_0.last_active<?
+2025-06-23 23:08:38 [MessageBroker-1] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.account_status,
+        u1_0.avatar_url,
+        u1_0.bio,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.last_active,
+        u1_0.password,
+        u1_0.phone_number,
+        u1_0.public_id,
+        u1_0.role,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        user u1_0 
+    where
+        u1_0.status=? 
+        and u1_0.last_active<?
+2025-06-23 23:09:38 [MessageBroker-1] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.account_status,
+        u1_0.avatar_url,
+        u1_0.bio,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.last_active,
+        u1_0.password,
+        u1_0.phone_number,
+        u1_0.public_id,
+        u1_0.role,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        user u1_0 
+    where
+        u1_0.status=? 
+        and u1_0.last_active<?
+2025-06-23 23:10:38 [MessageBroker-1] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.account_status,
+        u1_0.avatar_url,
+        u1_0.bio,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.last_active,
+        u1_0.password,
+        u1_0.phone_number,
+        u1_0.public_id,
+        u1_0.role,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        user u1_0 
+    where
+        u1_0.status=? 
+        and u1_0.last_active<?
+2025-06-23 23:11:38 [MessageBroker-1] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.account_status,
+        u1_0.avatar_url,
+        u1_0.bio,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.last_active,
+        u1_0.password,
+        u1_0.phone_number,
+        u1_0.public_id,
+        u1_0.role,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        user u1_0 
+    where
+        u1_0.status=? 
+        and u1_0.last_active<?
+2025-06-23 23:12:38 [MessageBroker-1] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.account_status,
+        u1_0.avatar_url,
+        u1_0.bio,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.last_active,
+        u1_0.password,
+        u1_0.phone_number,
+        u1_0.public_id,
+        u1_0.role,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        user u1_0 
+    where
+        u1_0.status=? 
+        and u1_0.last_active<?
+2025-06-23 23:13:38 [MessageBroker-1] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.account_status,
+        u1_0.avatar_url,
+        u1_0.bio,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.last_active,
+        u1_0.password,
+        u1_0.phone_number,
+        u1_0.public_id,
+        u1_0.role,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        user u1_0 
+    where
+        u1_0.status=? 
+        and u1_0.last_active<?
+2025-06-23 23:14:38 [MessageBroker-1] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.account_status,
+        u1_0.avatar_url,
+        u1_0.bio,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.last_active,
+        u1_0.password,
+        u1_0.phone_number,
+        u1_0.public_id,
+        u1_0.role,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        user u1_0 
+    where
+        u1_0.status=? 
+        and u1_0.last_active<?
+2025-06-23 23:15:38 [MessageBroker-1] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.account_status,
+        u1_0.avatar_url,
+        u1_0.bio,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.last_active,
+        u1_0.password,
+        u1_0.phone_number,
+        u1_0.public_id,
+        u1_0.role,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        user u1_0 
+    where
+        u1_0.status=? 
+        and u1_0.last_active<?
+2025-06-23 23:16:38 [MessageBroker-1] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.account_status,
+        u1_0.avatar_url,
+        u1_0.bio,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.last_active,
+        u1_0.password,
+        u1_0.phone_number,
+        u1_0.public_id,
+        u1_0.role,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        user u1_0 
+    where
+        u1_0.status=? 
+        and u1_0.last_active<?
+2025-06-23 23:17:38 [MessageBroker-1] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.account_status,
+        u1_0.avatar_url,
+        u1_0.bio,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.last_active,
+        u1_0.password,
+        u1_0.phone_number,
+        u1_0.public_id,
+        u1_0.role,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        user u1_0 
+    where
+        u1_0.status=? 
+        and u1_0.last_active<?
+2025-06-23 23:18:38 [MessageBroker-1] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.account_status,
+        u1_0.avatar_url,
+        u1_0.bio,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.last_active,
+        u1_0.password,
+        u1_0.phone_number,
+        u1_0.public_id,
+        u1_0.role,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        user u1_0 
+    where
+        u1_0.status=? 
+        and u1_0.last_active<?
+2025-06-23 23:19:38 [MessageBroker-1] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.account_status,
+        u1_0.avatar_url,
+        u1_0.bio,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.last_active,
+        u1_0.password,
+        u1_0.phone_number,
+        u1_0.public_id,
+        u1_0.role,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        user u1_0 
+    where
+        u1_0.status=? 
+        and u1_0.last_active<?
+2025-06-23 23:20:38 [MessageBroker-1] DEBUG org.hibernate.SQL - 
+    select
+        u1_0.id,
+        u1_0.account_status,
+        u1_0.avatar_url,
+        u1_0.bio,
+        u1_0.created_at,
+        u1_0.email,
+        u1_0.full_name,
+        u1_0.last_active,
+        u1_0.password,
+        u1_0.phone_number,
+        u1_0.public_id,
+        u1_0.role,
+        u1_0.status,
+        u1_0.updated_at,
+        u1_0.username 
+    from
+        user u1_0 
+    where
+        u1_0.status=? 
+        and u1_0.last_active<?
+2025-06-23 23:20:41 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopping...
+2025-06-23 23:20:41 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - BrokerAvailabilityEvent[available=false, SimpleBrokerMessageHandler [org.springframework.messaging.simp.broker.DefaultSubscriptionRegistry@4bf48307]]
+2025-06-23 23:20:41 [SpringApplicationShutdownHook] INFO  o.s.m.s.b.SimpleBrokerMessageHandler - Stopped.
+2025-06-23 23:20:41 [SpringApplicationShutdownHook] INFO  o.s.o.j.LocalContainerEntityManagerFactoryBean - Closing JPA EntityManagerFactory for persistence unit 'default'
+2025-06-23 23:20:41 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown initiated...
+2025-06-23 23:20:41 [SpringApplicationShutdownHook] INFO  com.zaxxer.hikari.HikariDataSource - HikariPool-1 - Shutdown completed.
