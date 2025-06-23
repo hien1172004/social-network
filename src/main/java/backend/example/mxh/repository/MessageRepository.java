@@ -8,6 +8,8 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.time.LocalDateTime;
+
 @Repository
 public interface MessageRepository extends JpaRepository<Message, Long> {
     Page<Message> findByConversation_Id(Long conversationId, Pageable pageable);
@@ -21,5 +23,6 @@ public interface MessageRepository extends JpaRepository<Message, Long> {
             """, nativeQuery = true)
     Message findTopMessage(@Param("conversationId") Long conversationId);
 
+    Page<Message> findByConversation_IdAndCreatedAtAfter(Long conversation_id, LocalDateTime createdAt, Pageable pageable);
 }
 

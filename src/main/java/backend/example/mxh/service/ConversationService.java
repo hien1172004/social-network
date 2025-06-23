@@ -37,7 +37,7 @@ public interface ConversationService {
     void leaveConversation(Long conversationId, Long userId) throws BadRequestException;
     
     // Xóa cuộc trò chuyện
-    void deleteConversation(Long conversationId, Long userId) throws BadRequestException;
+    void deleteConversationForUser(Long conversationId, Long userId) throws BadRequestException;
     
     // Lấy danh sách thành viên
     PageResponse<List<MemberResponse>> getConversationMembers(Long conversationId, int pageNo, int pageSize);

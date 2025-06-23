@@ -46,7 +46,7 @@ public class MessageServiceImpl implements MessageService {
 
         Message message = messageMapper.toMessage(messageDTO);
         message.setConversation(conversation);
-        message.setSender(sender);
+        message.setSender(sender);  
         // Tạo MessageStatus cho tất cả thành viên trong cuộc trò chuyện
         Message finalMessage = message;
         List<MessageStatus> statuses = conversation.getMembers().stream()
@@ -79,13 +79,22 @@ public class MessageServiceImpl implements MessageService {
     }
 
     @Override
-    public PageResponse<List<MessageResponse>> getMessagesByConversationId(Long conversationId, int pageNo, int pageSize) {
+    public PageResponse<List<MessageResponse>> getMessagesByConversationId(Long conversationId, Long userId,  int pageNo, int pageSize) {
         int page = 0;
         if(pageNo > 0){
             page = pageNo - 1;
         }
+        ConversationMember member = conversationMemberRepository.findByConversation_IdAndMember_Id(conversationId, userId).orElseThrow(()
+                -> new ResourceNotFoundException("User is not a member of conversation"));
+
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Message> messages = messageRepository.findByConversation_Id(conversationId, pageable);
+        Page<Message> messages;
+        if (member.getLastDeletedAt() != null) {
+            // Cần tạo hàm này trong MessageRepository
+            messages = messageRepository.findByConversation_IdAndCreatedAtAfter(conversationId, member.getLastDeletedAt(), pageable);
+        } else {
+            messages = messageRepository.findByConversation_Id(conversationId, pageable);
+        }
         return PageResponse.<List<MessageResponse>>builder()
                 .pageNo(pageNo)
                 .pageSize(pageSize)

@@ -24,13 +24,14 @@ public class MessageController {
         return ResponseEntity.ok(messageService.sendMessage(messageDTO));
     }
 
-    // Lấy danh sách tin nhắn theo conversationId (có phân trang)
-    @GetMapping("/conversation/{conversationId}")
+    // Lấy danh sách tin nhắn theo conversationId cua user (có phân trang)
+    @GetMapping("/conversation/{conversationId}/user/{userId}")
     public ResponseEntity<PageResponse<List<MessageResponse>>> getMessages(
             @PathVariable Long conversationId,
+            @PathVariable Long userId,
             @RequestParam(defaultValue = "1") int pageNo,
             @RequestParam(defaultValue = "10") int pageSize) {
-        return ResponseEntity.ok(messageService.getMessagesByConversationId(conversationId, pageNo, pageSize));
+        return ResponseEntity.ok(messageService.getMessagesByConversationId(conversationId,userId, pageNo, pageSize));
     }
 
     // Đánh dấu một tin nhắn là đã đọc

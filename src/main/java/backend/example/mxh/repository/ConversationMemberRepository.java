@@ -41,4 +41,6 @@ and cm.member.username like concat('%', :key, '%')
     Page<ConversationMember> findByConversation_Id(Long conversationId, Pageable pageable);
 
     boolean existsByConversation_IdAndMember_Id(Long conversationId, Long memberId);
+
+    ConversationMember findByMember_Id(Long memberId);
 }

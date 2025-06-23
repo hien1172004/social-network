@@ -32,18 +32,20 @@ public class FriendController {
     /**
      * Chấp nhận lời mời kết bạn
      */
-    @PutMapping("/accept/{id}")
-    public ResponseEntity<ResponseData<Void>> acceptRequest(@PathVariable("id") Long friendRequestId) {
-        friendService.acceptFriendRequest(friendRequestId);
+    @PutMapping("/{receiverId}/accept/{senderId}")
+    public ResponseEntity<ResponseData<Void>> acceptRequest(@PathVariable("senderId") Long senderId,
+                                                            @PathVariable("receiverId") Long receiverId) {
+        friendService.acceptFriendRequest(senderId, receiverId);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Chấp nhận lời mời thành công"));
     }
 
     /**
      * Từ chối lời mời kết bạn
      */
-    @PutMapping("/decline/{id}")
-    public ResponseEntity<ResponseData<Void>> declineRequest(@PathVariable("id") Long friendRequestId) {
-        friendService.declineFriendRequest(friendRequestId);
+    @PutMapping("/{receiverId}/decline/{senderId}")
+    public ResponseEntity<ResponseData<Void>> declineRequest(@PathVariable("senderId") Long senderId,
+                                                             @PathVariable("receiverId") Long receiverId) {
+        friendService.declineFriendRequest(senderId, receiverId);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Từ chối lời mời thành công"));
     }
 
@@ -51,18 +53,26 @@ public class FriendController {
      * Hủy kết bạn
      */
     @DeleteMapping("/unfriend")
-    public ResponseEntity<ResponseData<Void>> unfriend(@RequestParam Long userId1, @RequestParam Long userId2) {
+    public ResponseEntity<ResponseData<Void>> unfriend(@RequestParam("senderId") Long userId1, @RequestParam("receiverId") Long userId2) {
         friendService.unAcceptFriendRequest(userId1, userId2);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Đã huỷ kết bạn"));
     }
-
+    /**
+     * thu hồi lời kết bạn
+     */
+    @DeleteMapping("/cancel")
+    public ResponseEntity<ResponseData<Void>> cancelFriendRequest(@RequestParam Long senderId,
+                                                 @RequestParam Long receiverId) {
+        friendService.cancelFriendRequest(senderId, receiverId);
+        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "đã thu hồi lời mời kết bạn"));
+    }
     /**
      * Lấy danh sách lời mời kết bạn đã nhận
      */
     @GetMapping("/received")
     public ResponseEntity<ResponseData<PageResponse<List<FriendResponse>>>> getReceivedRequests(
-            @RequestParam int pageNo,
-            @RequestParam int pageSize,
+            @RequestParam(defaultValue = "1", required = false) int pageNo,
+            @RequestParam(defaultValue = "10", required = false) int pageSize,
             @RequestParam Long userId) {
         PageResponse<List<FriendResponse>> response = friendService.getReceivedFriendRequests(pageNo, pageSize, userId);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Danh sách lời mời nhận", response));
@@ -73,8 +83,8 @@ public class FriendController {
      */
     @GetMapping("/sent")
     public ResponseEntity<ResponseData<PageResponse<List<FriendResponse>>>> getSentRequests(
-            @RequestParam int pageNo,
-            @RequestParam int pageSize,
+            @RequestParam(defaultValue = "1", required = false) int pageNo,
+            @RequestParam(defaultValue = "10", required = false) int pageSize,
             @RequestParam Long userId) {
         PageResponse<List<FriendResponse>> response = friendService.getSentFriendRequests(pageNo, pageSize, userId);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Danh sách lời mời đã gửi", response));
@@ -85,8 +95,8 @@ public class FriendController {
      */
     @GetMapping
     public ResponseEntity<ResponseData<PageResponse<List<FriendResponse>>>> getFriends(
-            @RequestParam int pageNo,
-            @RequestParam int pageSize,
+            @RequestParam(defaultValue = "1", required = false) int pageNo,
+            @RequestParam(defaultValue = "10", required = false) int pageSize,
             @RequestParam Long userId) {
         PageResponse<List<FriendResponse>> response = friendService.getFriends(pageNo, pageSize, userId);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Danh sách bạn bè", response));
@@ -99,8 +109,8 @@ public class FriendController {
     public ResponseEntity<ResponseData<PageResponse<List<MutualFriendResponse>>>> getMutualFriends(
             @RequestParam Long userId1,
             @RequestParam Long userId2,
-            @RequestParam int pageNo,
-            @RequestParam int pageSize) {
+            @RequestParam(defaultValue = "1", required = false) int pageNo,
+            @RequestParam(defaultValue = "10", required = false) int pageSize) {
         PageResponse<List<MutualFriendResponse>> response = friendService.getMutualFriends(userId1, userId2, pageNo, pageSize);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Bạn chung", response));
     }

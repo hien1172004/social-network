@@ -10,11 +10,13 @@ import java.util.List;
 public interface FriendService {
     Long sendFriendRequest(FriendDTO dto);
 
-    void acceptFriendRequest(Long friendRequestId);
+    void acceptFriendRequest(Long senderId, Long receiverId);
 
-    void declineFriendRequest(Long friendRequestId);
+    void declineFriendRequest(Long senderId, Long receiverId);
 
     void unAcceptFriendRequest(Long userId1, Long userId2);
+
+    void cancelFriendRequest(Long senderId, Long receiverId);
 
     PageResponse< List<FriendResponse>> getReceivedFriendRequests(int pageNo, int pageSize, Long userId);
 

@@ -24,6 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.nio.file.AccessDeniedException;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -287,17 +288,14 @@ public class ConversationServiceImpl implements ConversationService {
 
     @Override
     @Transactional
-    public void deleteConversation(Long conversationId, Long userId) {
-        Conversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new ResourceNotFoundException("Conversation not found"));
+    public void deleteConversationForUser(Long conversationId, Long userId) {
 
         ConversationMember participant = conversationMemberRepository.findByConversation_IdAndMember_Id(conversationId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("User is not a member of the conversation"));
 
-        if (!participant.isAdmin()) {
-            throw new InvalidDataException("Only admin can delete conversations");
-        }
-        conversationRepository.delete(conversation);
+        participant.setLastDeletedAt(LocalDateTime.now());
+        conversationMemberRepository.save(participant);
+        log.info("Delete conversation {} for user {}", conversationId, userId);
     }
 
     @Override

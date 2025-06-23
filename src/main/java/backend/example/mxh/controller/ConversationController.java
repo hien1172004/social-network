@@ -77,7 +77,7 @@ public class ConversationController {
 
     @DeleteMapping
     public ResponseEntity<ResponseData<Void>> delete(@RequestParam Long conversationId, @RequestParam Long userId) throws BadRequestException {
-        conversationService.deleteConversation(conversationId, userId);
+        conversationService.deleteConversationForUser(conversationId, userId);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Xóa cuộc trò chuyện thành công"));
     }
 

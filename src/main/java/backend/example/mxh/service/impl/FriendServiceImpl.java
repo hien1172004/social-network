@@ -40,18 +40,19 @@ public class FriendServiceImpl implements FriendService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final NotificationService notificationService;
+
     @Override
     public Long sendFriendRequest(FriendDTO dto) {
         User receiver = userRepository.findById(dto.getReceiverId())
                 .orElseThrow(() -> new ResourceNotFoundException("Receiver not found"));
         User sender = userRepository.findById(dto.getSenderId())
                 .orElseThrow(() -> new ResourceNotFoundException("Sender not found"));
-        if(Objects.equals(receiver.getId(), sender.getId())){
+        if (Objects.equals(receiver.getId(), sender.getId())) {
             throw new InvalidDataException("Receiver and Sender are the same");
         }
-        boolean exists = friendRepository.existsFriendship(sender.getId(), receiver.getId());
+        int exists = friendRepository.existsFriendship(sender.getId(), receiver.getId());
 
-        if (exists) {
+        if (exists > 0) {
             throw new IllegalArgumentException("Friend request already exists or already friends.");
         }
 
@@ -73,8 +74,8 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
-    public void acceptFriendRequest(Long friendRequestId) {
-        Friend friend = friendRepository.findById(friendRequestId)
+    public void acceptFriendRequest(Long senderId, Long receiverId) {
+        Friend friend = friendRepository.findBySender_IdAndReceiver_Id(senderId, receiverId)
                 .orElseThrow(() -> new ResourceNotFoundException("Friend request not found"));
 
         friend.setStatus(FriendStatus.ACCEPTED);
@@ -91,10 +92,12 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
-    public void declineFriendRequest(Long friendRequestId) {
-        Friend friend = friendRepository.findById(friendRequestId)
+    public void declineFriendRequest(Long senderId, Long receiverId) {
+        Friend friend = friendRepository.findBySender_IdAndReceiver_Id(senderId, receiverId)
                 .orElseThrow(() -> new ResourceNotFoundException("Friend request not found"));
-
+        if (friend.getStatus() == FriendStatus.ACCEPTED) {
+            throw new InvalidDataException("Friend request already accepted");
+        }
         friend.setStatus(FriendStatus.DECLINED);
         friendRepository.save(friend);
         log.info("decline friend request: {}", friend);
@@ -110,9 +113,17 @@ public class FriendServiceImpl implements FriendService {
     }
 
     @Override
+    public void cancelFriendRequest(Long senderId, Long receiverId) {
+        Friend friend = friendRepository.getFriendRequest(senderId, receiverId, FriendStatus.PENDING, FriendStatus.DECLINED).orElseThrow(()
+                -> new ResourceNotFoundException("Friend request not found"));
+        friendRepository.delete(friend);
+        log.info("User {} cancelled friend request {}", senderId, receiverId);
+    }
+
+    @Override
     public PageResponse<List<FriendResponse>> getReceivedFriendRequests(int pageNo, int pageSize, Long userId) {
         int page = 0;
-        if(pageNo > 0){
+        if (pageNo > 0) {
             page = pageNo - 1;
         }
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -129,11 +140,11 @@ public class FriendServiceImpl implements FriendService {
     @Override
     public PageResponse<List<FriendResponse>> getSentFriendRequests(int pageNo, int pageSize, Long userId) {
         int page = 0;
-        if(pageNo > 0){
+        if (pageNo > 0) {
             page = pageNo - 1;
         }
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
-        Page<Friend> friends = friendRepository.findBySender_IdAndStatus(userId,FriendStatus.PENDING, pageable);
+        Page<Friend> friends = friendRepository.findBySender_IdAndStatus(userId, FriendStatus.PENDING, pageable);
         return PageResponse.<List<FriendResponse>>builder()
                 .pageSize(pageSize)
                 .pageNo(pageNo)
@@ -146,7 +157,7 @@ public class FriendServiceImpl implements FriendService {
     @Override
     public PageResponse<List<FriendResponse>> getFriends(int pageNo, int pageSize, Long userId) {
         int page = 0;
-        if(pageNo > 0){
+        if (pageNo > 0) {
             page = pageNo - 1;
         }
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -162,8 +173,11 @@ public class FriendServiceImpl implements FriendService {
 
     @Override
     public PageResponse<List<MutualFriendResponse>> getMutualFriends(Long userId1, Long userId2, int pageNo, int pageSize) {
+        if(userId1.equals(userId2)) {
+            throw new InvalidDataException("userId1 equals userId2");
+        }
         int page = 0;
-        if(pageNo > 0){
+        if (pageNo > 0) {
             page = pageNo - 1;
         }
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
@@ -198,7 +212,7 @@ public class FriendServiceImpl implements FriendService {
     @Override
     public PageResponse<List<MutualFriendResponse>> getSuggestFriends(int pageNo, int pageSize, Long userId) {
         int page = 0;
-        if(pageNo > 0){
+        if (pageNo > 0) {
             page = pageNo - 1;
         }
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));

@@ -11,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface FriendRepository extends JpaRepository<Friend, Long> {
@@ -19,7 +20,7 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
             from friends where (sender_id = :id1 and receiver_id = :id2)
             or (sender_id = :id2 and receiver_id = :id1)
             """, nativeQuery = true)
-    boolean existsFriendship(@Param("id1") Long id1, @Param("id2") Long id2);
+    int existsFriendship(@Param("id1") Long id1, @Param("id2") Long id2);
 
 
     Page<Friend> findByReceiver_IdAndStatus(Long receiverId, FriendStatus status, Pageable pageable);
@@ -60,7 +61,7 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
                 WHERE f1.sender.id = :userId AND f1.status = 'ACCEPTED' AND f2.status = 'ACCEPTED'
                 AND f2.receiver.id NOT IN (
                     SELECT f3.receiver.id FROM Friend f3 
-                    WHERE (f3.sender.id = :userId OR f3.receiver.id = :userId)
+                    WHERE (f3.sender.id = :userId OR f3.receiver.id = :userId) and f3.status = 'ACCEPTED'
                 )
                 AND f2.receiver.id != :userId
             """)
@@ -71,4 +72,13 @@ public interface FriendRepository extends JpaRepository<Friend, Long> {
             and f.status = :status
             """)
     Long countFriendB(@Param("userId") long userId, @Param("status") FriendStatus status);
+
+    Optional<Friend> findBySender_IdAndReceiver_Id(Long senderId, Long receiverId);
+
+    @Query("""
+select f from Friend f
+where f.sender.id = ?1 and f.receiver.id = ?2
+and (f.status = ?3 or f.status = ?4)
+""")
+    Optional<Friend> getFriendRequest(Long senderId, Long receiverId, FriendStatus status1, FriendStatus status2);
 }

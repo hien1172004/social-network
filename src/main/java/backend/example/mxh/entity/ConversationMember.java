@@ -4,6 +4,8 @@ import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
 
+import java.time.LocalDateTime;
+
 @Entity
 @AllArgsConstructor
 @NoArgsConstructor
@@ -29,4 +31,6 @@ public class ConversationMember extends AbstractEntity {
     private User member;
 
     private boolean admin = false;
+
+    private LocalDateTime lastDeletedAt;
 }

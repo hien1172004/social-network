@@ -8,8 +8,9 @@ import java.util.List;
 
 public interface MessageService {
     MessageResponse sendMessage(MessageDTO messageDTO);
-    PageResponse<List<MessageResponse>> getMessagesByConversationId(Long conversationId, int page, int size);
+    PageResponse<List<MessageResponse>> getMessagesByConversationId(Long conversationId, Long userId,  int page, int size);
     void markMessageAsRead(Long messageId, Long userId);
     void markAllMessagesAsRead(Long conversationId, Long userId);
     long countUnreadMessages(Long conversationId, Long userId);
+
 }
