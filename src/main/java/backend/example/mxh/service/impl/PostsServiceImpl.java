@@ -24,6 +24,7 @@ import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -92,58 +93,64 @@ public class PostsServiceImpl implements PostsService {
 
         postsRepository.save(posts);
         log.info("Updated post id={} with new content and images", id);
-}
+    }
 
 
-@Override
-@Transactional
-public void deletePost(long id) throws IOException {
-    Posts posts = postsRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post not found"));
-    if (posts.getPostImage() != null && !posts.getPostImage().isEmpty()) {
+    @Override
+    @Transactional
+    public void deletePost(long id) throws IOException {
+        Posts posts = postsRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+        if (posts.getPostImage() != null && !posts.getPostImage().isEmpty()) {
 
-        for (PostImage oldImage : posts.getPostImage()) {
-            cloudinary.deleteImage(oldImage.getPublicId()); // nếu có dùng Cloudinary
+            for (PostImage oldImage : posts.getPostImage()) {
+                cloudinary.deleteImage(oldImage.getPublicId()); // nếu có dùng Cloudinary
+            }
         }
+        postsRepository.delete(posts);
     }
-    postsRepository.delete(posts);
-}
 
-@Override
-@Transactional
-public PostsResponse getPostById(long id) {
-    Posts posts = postsRepository.findWithDetailsById(id).orElseThrow(() -> new ResourceNotFoundException("Post not found"));
+    @Override
+    @Transactional
+    public PostsResponse getPostById(long id) {
+        Posts posts = postsRepository.findWithDetailsById(id).orElseThrow(() -> new ResourceNotFoundException("Post not found"));
 
-    return postsMapper.toPostsResponse(posts);
-}
-
-@Override
-public PageResponse<List<PostsResponse>> getAllPosts(int pageNo, int pageSize) {
-    int page = Math.max(0, pageNo - 1);
-    Pageable pageable = PageRequest.of(page, pageSize, Sort.Direction.DESC, "createdAt");
-    Page<Posts> posts = postsRepository.findAll(pageable);
-    return PageResponse.<List<PostsResponse>>builder()
-            .pageNo(pageNo)
-            .totalElements(posts.getTotalElements())
-            .totalPages(posts.getTotalPages())
-            .pageSize(pageSize)
-            .items(posts.stream().map(postsMapper::toPostsResponse).toList())
-            .build();
-}
-
-@Override
-public PageResponse<List<PostsResponse>> getPostsByUserId(int pageNo, int pageSize, long userId) {
-    int page = 0;
-    if (pageNo > 0) {
-        page = pageNo - 1;
+        return postsMapper.toPostsResponse(posts);
     }
-    Pageable pageable = PageRequest.of(page, pageSize, Sort.Direction.DESC, "createdAt");
-    Page<Posts> posts = postsRepository.findByUser_IdOrderByCreatedAtDesc(userId, pageable);
-    return PageResponse.<List<PostsResponse>>builder()
-            .pageNo(pageNo)
-            .totalElements(posts.getTotalElements())
-            .totalPages(posts.getTotalPages())
-            .pageSize(pageSize)
-            .items(posts.stream().map(postsMapper::toPostsResponse).toList())
-            .build();
-}
+
+    @Override
+    public PageResponse<List<PostsResponse>> getAllPosts(int pageNo, int pageSize) {
+        int page = Math.max(0, pageNo - 1);
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.Direction.DESC, "createdAt");
+        Page<Posts> posts = postsRepository.findAll(pageable);
+        return PageResponse.<List<PostsResponse>>builder()
+                .pageNo(pageNo)
+                .totalElements(posts.getTotalElements())
+                .totalPages(posts.getTotalPages())
+                .pageSize(pageSize)
+                .items(posts.stream().map(postsMapper::toPostsResponse).toList())
+                .build();
+    }
+
+    @Override
+    public PageResponse<List<PostsResponse>> getPostsByUserId(int pageNo, int pageSize, long userId, LocalDateTime startDate, LocalDateTime endDate) {
+        int page = 0;
+        if (pageNo > 0) {
+            page = pageNo - 1;
+        }
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.Direction.DESC, "createdAt");
+        Page<Posts> posts;
+        if (startDate != null && endDate != null) {
+            posts = postsRepository.findByUser_Id(userId, pageable);
+        } else {
+            posts = postsRepository.getPostsOfUserInTime(userId, startDate, endDate, pageable);
+        }
+        return PageResponse.<List<PostsResponse>>builder()
+                .pageNo(pageNo)
+                .totalElements(posts.getTotalElements())
+                .totalPages(posts.getTotalPages())
+                .pageSize(pageSize)
+                .items(posts.stream().map(postsMapper::toPostsResponse).toList())
+                .build();
+    }
+
 }

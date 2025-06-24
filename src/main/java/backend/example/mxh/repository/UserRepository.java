@@ -32,4 +32,12 @@ public interface UserRepository extends JpaRepository<User, Long> {
     List<User> findByStatus(UserStatus status);
 
     List<User> findByStatusAndLastActiveBefore(UserStatus status, LocalDateTime lastActiveBefore);
+
+    @Query("""
+    select distinct u from User u
+    where u.username like lower(CONCAT('%', :key, '%'))
+    or u.fullName like lower(CONCAT('%', :key, '%'))
+    or u.email like lower(CONCAT('%', :key, '%'))
+""")
+    Page<User> getUserWithKeyword(@Param("key") String keyword, Pageable pageable);
 }

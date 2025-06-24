@@ -68,8 +68,8 @@ public class UserController {
      */
     @GetMapping("/search")
     public ResponseEntity<ResponseData<PageResponse<List<UserResponse>>>> searchUsers(
-            @RequestParam(defaultValue = "1") int pageNo,
-            @RequestParam(defaultValue = "10") int pageSize,
+            @RequestParam(defaultValue = "1", required = false) int pageNo,
+            @RequestParam(defaultValue = "10", required = false) int pageSize,
             @RequestParam(required = false) String keyword
     ) {
         PageResponse<List<UserResponse>> result = userService.searchUser(pageNo, pageSize, keyword);
@@ -88,11 +88,19 @@ public class UserController {
 
     @GetMapping("/online")
     public ResponseEntity<ResponseData<PageResponse<List<UserResponse>>>> getOnlineUsers(
-            @RequestParam(defaultValue = "1") int pageNo,
-            @RequestParam(defaultValue = "10") int pageSize
+            @RequestParam(defaultValue = "1", required = false) int pageNo,
+            @RequestParam(defaultValue = "10", required = false) int pageSize
     ) {
         PageResponse<List<UserResponse>> result = userService.getUsersOnline(pageNo, pageSize);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Lấy ngươi dung online thanh cong", result));
     }
 
+    @GetMapping("/")
+    public ResponseEntity<ResponseData<PageResponse<List<UserResponse>>>> getAllUsers( @RequestParam(defaultValue = "1", required = false) int pageNo,
+                                                                                       @RequestParam(defaultValue = "10", required = false) int pageSize,
+                                                                                       @RequestParam(required = false) String keyword,
+                                                                                       @RequestParam(required = false) String... sortBy){
+        PageResponse<List<UserResponse>> result = userService.getAllUsers(pageNo, pageSize, keyword, sortBy);
+        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "thanh cong", result));
+    }
 }

@@ -28,7 +28,10 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -230,6 +233,42 @@ public class UserServiceImpl implements UserService {
             webSocketService.setOfflineStatus(user.getId());
             log.info("Người dùng {} được đánh dấu OFFLINE do không hoạt động", user.getUsername());
         });
+    }
+
+    @Override
+    public PageResponse<List<UserResponse>> getAllUsers(int pageNo, int pageSize, String key, String... sorts) {
+        int page = 0;
+        if(pageNo > 0) {
+            page = pageNo - 1;
+        }
+        List<Sort.Order> orders = new ArrayList<Sort.Order>();
+        for(String sortBy : sorts) {
+            Pattern pattern = Pattern.compile("(\\w+?)(:)(.*)");
+            Matcher matcher = pattern.matcher(sortBy);
+            if(matcher.find()) {
+                if(matcher.group(3).equalsIgnoreCase("asc")){
+                    orders.add(new Sort.Order(Sort.Direction.ASC, matcher.group(1)));
+                }
+                else if(matcher.group(3).equalsIgnoreCase("desc")){
+                    orders.add(new Sort.Order(Sort.Direction.DESC, matcher.group(1)));
+                }
+            }
+        }
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(orders));
+        Page<User> users;
+        if(key != null && !key.isEmpty()) {
+            users = userRepository.getUserWithKeyword(key, pageable);
+        }
+        else {
+            users = userRepository.findAll(pageable);
+        }
+        return PageResponse.<List<UserResponse>>builder()
+                .pageNo(pageNo)
+                .pageSize(pageSize)
+                .items(users.stream().map(userMapper::toUserResponse).toList())
+                .totalPages(users.getTotalPages())
+                .totalElements(users.getTotalElements())
+                .build();
     }
 
 }

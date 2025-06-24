@@ -15,4 +15,5 @@ public interface MessageService {
     long countUnreadMessages(Long conversationId, Long userId);
     void revokeMessage(Long messageId, Long userId) throws AccessDeniedException;
     void deleteMessage(Long messageId, Long userId);
+    PageResponse<List<MessageResponse>> searchMessageInConversation(Long conversationId, Long userId, int pageNo, int pageSize, String keyword);
 }

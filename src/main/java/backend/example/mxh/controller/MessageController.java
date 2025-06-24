@@ -66,4 +66,14 @@ public class MessageController {
     public ResponseEntity<Long> countUnreadMessages(@PathVariable Long conversationId, @PathVariable Long userId) {
         return ResponseEntity.ok(messageService.countUnreadMessages(conversationId, userId));
     }
+
+    @GetMapping("/conversation/{conversationId}/user/{userId}/search")
+    public ResponseEntity<ResponseData<PageResponse<List<MessageResponse>>>> searchMessagesInConversation(@PathVariable Long conversationId, @PathVariable Long userId,
+                                                                                            @RequestParam(defaultValue = "1", required = false) int pageNo,
+                                                                                            @RequestParam(defaultValue = "10", required = false) int pageSize,
+                                                                                            @RequestParam(required = true) String key){
+
+        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "thành công", messageService.searchMessageInConversation(conversationId, userId, pageNo, pageSize, key)));
+    }
+
 }

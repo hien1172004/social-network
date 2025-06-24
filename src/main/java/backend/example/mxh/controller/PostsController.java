@@ -8,10 +8,12 @@ import backend.example.mxh.service.PostsService;
 import backend.example.mxh.until.ResponseCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -47,8 +49,10 @@ public class PostsController {
     @GetMapping("/user/{userId}")
     public ResponseEntity<ResponseData<PageResponse<List<PostsResponse>>>> getPostsByUser(@PathVariable long userId,
                                                                                           @RequestParam(defaultValue = "1", required = false) int pageNo,
-                                                                                          @RequestParam(defaultValue = "10", required = false) int pageSize) {
-        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Lấy bài viết theo user thành công", postsService.getPostsByUserId(pageNo, pageSize, userId)));
+                                                                                          @RequestParam(defaultValue = "10", required = false) int pageSize,
+                                                                                          @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+                                                                                          @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Lấy bài viết theo user thành công", postsService.getPostsByUserId(pageNo, pageSize, userId, startDate,endDate)));
     }
 
     @GetMapping
@@ -56,4 +60,6 @@ public class PostsController {
                                                                                        @RequestParam(defaultValue = "10", required = false) int pageSize) {
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Lấy danh sách bài viết thành công", postsService.getAllPosts(pageNo, pageSize)));
     }
+
+
 }

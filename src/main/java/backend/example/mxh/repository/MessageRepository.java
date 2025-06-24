@@ -29,5 +29,14 @@ where m.conversation.id = ?1 and m.createdAt > ?2
 and ms.deleted = false
 """)
     Page<Message> findByConversation_IdAndCreatedAtAfter(Long conversation_id, LocalDateTime createdAt, Pageable pageable);
+
+    @Query("""
+select m from Message m
+join m.statuses ms
+where m.conversation.id = :conversationId
+and m.content like concat('%', :content, '%')
+and ms.deleted = false
+""")
+    Page<Message> searchMessage(@Param("conversationId") Long conversationId, @Param("content") String key, Pageable pageable);
 }
 

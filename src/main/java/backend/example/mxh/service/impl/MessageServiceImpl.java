@@ -1,7 +1,6 @@
 package backend.example.mxh.service.impl;
 
 import backend.example.mxh.DTO.request.MessageDTO;
-import backend.example.mxh.DTO.response.MemberResponse;
 import backend.example.mxh.DTO.response.MessageReadResponse;
 import backend.example.mxh.DTO.response.MessageResponse;
 import backend.example.mxh.DTO.response.PageResponse;
@@ -179,5 +178,24 @@ public class MessageServiceImpl implements MessageService {
         status.setDeleted(true);
         messageStatusRepository.save(status);
         log.info("Message deleted");
+    }
+
+
+    @Override
+    public PageResponse<List<MessageResponse>> searchMessageInConversation(Long conversationId, Long userId, int pageNo, int pageSize, String keyword) {
+        int page = 0;
+        if (pageNo > 0) {
+            page = pageNo - 1;
+        }
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Message> messages = messageRepository.searchMessage(conversationId, keyword, pageable);
+
+        return PageResponse.<List<MessageResponse>>builder()
+                .pageNo(pageNo)
+                .pageSize(pageSize)
+                .items(messages.stream().map(message -> messageMapper.toResponse(message, userId)).toList())
+                .totalElements(messages.getTotalElements())
+                .totalPages(messages.getTotalPages())
+                .build();
     }
 }
