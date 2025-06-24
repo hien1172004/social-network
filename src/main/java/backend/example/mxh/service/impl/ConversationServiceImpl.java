@@ -157,7 +157,7 @@ public class ConversationServiceImpl implements ConversationService {
             //  Tạo tin nhắn hệ thống cho từng người được thêm
             Message systemMessage = Message.builder()
                     .conversation(conversation)
-                    .sender(null) // hoặc để sender là người thêm cũng được
+                    .sender(requester) // hoặc để sender là người thêm cũng được
                     .content(requester.getUsername() + "đã thêm " + user.getFullName() + " cuộc trò chuyện.")
                     .type(MessageType.SYSTEM)
                     .build();
@@ -198,7 +198,7 @@ public class ConversationServiceImpl implements ConversationService {
         // Gửi tin nhắn hệ thống
         Message systemMessage = Message.builder()
                 .conversation(conversation)
-                .sender(null) // hệ thống
+                .sender(requester) // hệ thống
                 .type(MessageType.SYSTEM)
                 .content(requester.getFullName() + " đã xoá " + target.getFullName() + " khỏi cuộc trò chuyện.")
                 .build();
@@ -226,7 +226,7 @@ public class ConversationServiceImpl implements ConversationService {
         // Gửi tin nhắn hệ thống
         Message systemMessage = Message.builder()
                 .conversation(conversation)
-                .sender(null) // hệ thống
+                .sender(requester) // hệ thống
                 .type(MessageType.SYSTEM)
                 .content(requester.getFullName() + " đã xoá đổi tên nhóm thành " + dto.getGroupName())
                 .build();

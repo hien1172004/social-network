@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>WebSocket Test</title>
+    <script src="https://cdn.jsdelivr.net/npm/sockjs-client@1/dist/sockjs.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/stomp.js/2.3.3/stomp.min.js"></script>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        #messages { border: 1px solid #ccc; padding: 10px; height: 200px; overflow-y: auto; background: #f9f9f9; }
+        #chat-history { border: 1px solid #007bff; padding: 10px; height: 250px; overflow-y: auto; background: #eef6ff; margin-top: 10px; }
+        button { margin: 5px; }
+        .status { color: green; }
+        .error { color: red; }
+        .chat-msg { margin: 4px 0; }
+        .chat-msg.me { text-align: right; color: #007bff; }
+        .chat-msg.other { text-align: left; color: #333; }
+        .chat-meta { font-size: 0.8em; color: #888; }
+    </style>
+</head>
+<body>
+    <h1>WebSocket Test</h1>
+    <div>
+        <label>User ID: <input type="number" id="userId" value="1" min="1" style="width:60px"></label>
+        <button onclick="connect()">Connect</button>
+        <button onclick="disconnect()">Disconnect</button>
+    </div>
+    <div style="margin-top:10px;">
+        <button onclick="sendOnline()">Send Online</button>
+        <button onclick="sendOffline()">Send Offline</button>
+        <button onclick="sendPing()">Send Ping</button>
+    </div>
+    <div style="margin-top:20px;">
+        <h3>Chat giữa 2 người</h3>
+        <div>
+            <label>Conversation ID: <input type="number" id="conversationId" value="1" min="1" style="width:60px"></label>
+            <input type="text" id="chatContent" placeholder="Nhập nội dung chat..." style="width:300px">
+            <button onclick="sendMessage()">Gửi</button>
+        </div>
+        <div id="chat-history"></div>
+    </div>
+    <div style="margin-top:20px;">
+        <h3>Messages (log):</h3>
+        <div id="messages"></div>
+    </div>
+    <script>
+        let stompClient = null;
+        let chatHistory = [];
+        let currentConversationId = 1;
+        function connect() {
+            const socket = new SockJS('http://localhost:8080/ws');
+            stompClient = Stomp.over(socket);
+            stompClient.connect({}, function (frame) {
+                addMessage('Connected: ' + frame, 'status');
+                // Subscribe to error queue
+                stompClient.subscribe('/user/queue/errors', function (error) {
+                    addMessage('Error: ' + error.body, 'error');
+                });
+                // Subscribe to notifications
+                stompClient.subscribe('/user/queue/notifications', function (notification) {
+                    addMessage('Notification: ' + notification.body, 'status');
+                });
+                // BỎ subscribe /user/queue/messages để tránh lặp và đồng bộ đúng
+                // Subscribe to user status
+                stompClient.subscribe('/topic/user-status', function (status) {
+                    addMessage('User Status: ' + status.body, '');
+                });
+                // Subscribe to conversation topic (public group chat)
+                subscribeConversation();
+            }, function (error) {
+                addMessage('Connection error: ' + error, 'error');
+            });
+        }
+        function disconnect() {
+            if (stompClient !== null) {
+                stompClient.disconnect(() => addMessage('Disconnected', 'status'));
+            }
+        }
+        function sendOnline() {
+            const userId = getUserId();
+            if (stompClient && stompClient.connected) {
+                stompClient.send("/app/status/online", {}, userId);
+                addMessage('Sent online status for user: ' + userId, '');
+            }
+        }
+        function sendOffline() {
+            const userId = getUserId();
+            if (stompClient && stompClient.connected) {
+                stompClient.send("/app/status/offline", {}, userId);
+                addMessage('Sent offline status for user: ' + userId, '');
+            }
+        }
+        function sendPing() {
+            const userId = getUserId();
+            if (stompClient && stompClient.connected) {
+                stompClient.send("/app/user/ping", {}, userId);
+                addMessage('Sent ping for user: ' + userId, '');
+            }
+        }
+        function sendMessage() {
+            const userId = getUserId();
+            const conversationId = getConversationId();
+            const content = document.getElementById('chatContent').value;
+            if (stompClient && stompClient.connected && content.trim() !== '') {
+                const message = {
+                    conversationId: parseInt(conversationId),
+                    senderId: parseInt(userId),
+                    content: content
+                };
+                stompClient.send("/app/send-message", {}, JSON.stringify(message));
+                document.getElementById('chatContent').value = '';
+            }
+        }
+        function handleChatMessage(body) {
+            try {
+                const msg = JSON.parse(body);
+                const conversationId = getConversationId();
+                const myUserId = parseInt(getUserId());
+                // Lấy senderId đúng từ object sender hoặc trường senderId
+                let senderId = msg.senderId;
+                if (senderId === undefined && msg.sender && msg.sender.id !== undefined) {
+                    senderId = msg.sender.id;
+                }
+                console.log('DEBUG:', {senderId, myUserId, msg});
+                if (msg.conversationId && msg.conversationId == conversationId) {
+                    chatHistory.push({
+                        conversationId: msg.conversationId,
+                        senderId: senderId,
+                        content: msg.content,
+                        me: (parseInt(senderId) === myUserId),
+                        time: new Date().toLocaleTimeString()
+                    });
+                    renderChat();
+                }
+            } catch (e) {
+                addMessage('Nhận message không hợp lệ: ' + body, 'error');
+            }
+        }
+        function renderChat() {
+            const chatDiv = document.getElementById('chat-history');
+            chatDiv.innerHTML = '';
+            chatHistory.forEach((msg, idx) => {
+                const div = document.createElement('div');
+                div.className = 'chat-msg ' + (msg.me ? 'me' : 'other');
+                div.innerHTML = `<span>${msg.content}</span><div class="chat-meta">${msg.me ? 'Tôi' : 'Người kia'} - ${msg.time}${msg.read ? ' <span style=\'color:green\'>(Đã đọc)</span>' : ''}</div>`;
+                div.style.cursor = 'pointer';
+                div.title = 'Click để đánh dấu đã đọc';
+                div.onclick = function() {
+                    markMessageAsRead(msg);
+                };
+                chatDiv.appendChild(div);
+            });
+            chatDiv.scrollTop = chatDiv.scrollHeight;
+        }
+        function markMessageAsRead(msg) {
+            const userId = getUserId();
+            if (stompClient && stompClient.connected && msg && msg.senderId !== userId) {
+                const payload = {
+                    userId: parseInt(userId),
+                    messageId: msg.id || msg.messageId
+                };
+                stompClient.send('/app/read-message', {}, JSON.stringify(payload));
+                msg.read = true;
+                renderChat();
+            }
+        }
+        function addMessage(message, cssClass) {
+            const messagesDiv = document.getElementById('messages');
+            const messageElement = document.createElement('div');
+            if (cssClass) messageElement.className = cssClass;
+            messageElement.textContent = new Date().toLocaleTimeString() + ': ' + message;
+            messagesDiv.appendChild(messageElement);
+            messagesDiv.scrollTop = messagesDiv.scrollHeight;
+        }
+        function getUserId() {
+            return parseInt(document.getElementById('userId').value) || 1;
+        }
+        function getConversationId() {
+            return document.getElementById('conversationId').value || 1;
+        }
+        function subscribeConversation() {
+            // Nếu muốn subscribe vào topic group chat, có thể dùng dòng này:
+            const conversationId = getConversationId();
+            if (stompClient && stompClient.connected) {
+                stompClient.subscribe(`/topic/conversation/${conversationId}`, function (message) {
+                    handleChatMessage(message.body);
+                });
+            }
+        }
+        // Khi đổi conversationId thì clear chat history và subscribe lại
+        document.getElementById('conversationId').addEventListener('change', function() {
+            chatHistory = [];
+            renderChat();
+            subscribeConversation();
+        });
+    </script>
+</body>
+</html> 
