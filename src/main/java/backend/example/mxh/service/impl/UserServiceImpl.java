@@ -22,6 +22,8 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
+import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -41,6 +43,11 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final UploadImageFile cloudinary;
     private final WebSocketService webSocketService;
+
+    @Override
+    public UserDetailsService userDetailsService() {
+        return email -> userRepository.findByEmail(email).orElseThrow(()-> new UsernameNotFoundException("email not found"));
+    }
 
     @Override
     @Transactional
@@ -269,6 +276,19 @@ public class UserServiceImpl implements UserService {
                 .totalPages(users.getTotalPages())
                 .totalElements(users.getTotalElements())
                 .build();
+    }
+
+    @Override
+    public void updateStatus(long id) {
+        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("not found user"));
+        if(user.getStatus() == UserStatus.OFFLINE){
+            user.setStatus(UserStatus.ONLINE);
+        }
+        else if(user.getStatus() == UserStatus.ONLINE){
+            user.setStatus(UserStatus.OFFLINE);
+        }
+        userRepository.save(user);
+        log.info("update user {} status {}", user.getUsername(), user.getStatus());
     }
 
 }

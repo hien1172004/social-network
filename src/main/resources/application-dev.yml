@@ -15,6 +15,10 @@ spring:
       hibernate:
         dialect: org.hibernate.dialect.MySQL8Dialect
         format_sql: true
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
 openapi:
   service:
     api-docs: api-service
@@ -26,3 +30,11 @@ cloudinary:
   cloud-name: ${CLOUD_NAME:dw9krx7ac}
   api-key: ${CLOUD_KEY:343217657647922}
   api-secret: ${CLOUD_SECRET:PITHfB4ErAvx0gVeU55gQGd3dFc}
+
+jwt:
+  expiryHour: 1
+  expiryDay: 14
+  secretKey: ${JWT_SECRET_KEY:VpKMvbaC6AdlBFwJv+1uw8Fxmk1X4NbHx4LZifIS82A=}
+  refreshKey: ${JWT_REFRESH_KEY:vSV7CcCeWfrYj4CG32bqMwoHvxESWdMVrJF8qx8vNAA=}
+  resetKey: ${JWT_RESET_KEY:0Ohs3ta9nEJkDJ45bCfHmiolLxU4iyxG1q8IJHpcekE=}
+  verifyKey: ${JWT_VERIFY_KEY:uaCHgwWkKr4LLBURDO7opRUlgcNf7VN0fdVVNcdT+3Q=}

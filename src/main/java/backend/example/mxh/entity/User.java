@@ -6,8 +6,12 @@ import backend.example.mxh.until.UserStatus;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.SuperBuilder;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetails;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 
 @Entity
@@ -16,7 +20,7 @@ import java.util.List;
 @Getter
 @Setter
 @SuperBuilder
-public class User extends AbstractEntity {
+public class User extends AbstractEntity implements UserDetails, Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -83,4 +87,34 @@ public class User extends AbstractEntity {
     @OneToMany(mappedBy = "receiver")
     private List<Notification> receivedNotification;
 
+
+    @Override
+    public String getUsername() {
+        return this.getEmail();
+    }
+    
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities() {
+        return List.of((GrantedAuthority) () -> "ROLE_" + role.name());
+    }
+
+    @Override
+    public boolean isAccountNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isAccountNonLocked() {
+        return this.accountStatus == AccountStatus.ACTIVE;
+    }
+
+    @Override
+    public boolean isCredentialsNonExpired() {
+        return true;
+    }
+
+    @Override
+    public boolean isEnabled() {
+        return this.accountStatus == AccountStatus.ACTIVE;
+    }
 }
