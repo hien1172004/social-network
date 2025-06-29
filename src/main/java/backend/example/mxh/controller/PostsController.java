@@ -10,6 +10,7 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -29,12 +30,14 @@ public class PostsController {
         return ResponseEntity.status(201).body(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Tạo bài viết thành công", id));
     }
 
+    @PreAuthorize("hasRole('ADMIN') or @postSecurity.isOwner(#id, authentication)")
     @PutMapping("/{id}")
     public ResponseEntity<ResponseData<Void>> updatePost(@PathVariable long id, @RequestBody @Valid PostsDTO dto) throws IOException {
         postsService.updatePost(id, dto);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Cập nhật bài viết thành công"));
     }
 
+    @PreAuthorize("hasRole('ADMIN') or @postSecurity.isOwner(#id, authentication)")
     @DeleteMapping("/{id}")
     public ResponseEntity<ResponseData<Void>> deletePost(@PathVariable long id) throws IOException {
         postsService.deletePost(id);
@@ -45,6 +48,7 @@ public class PostsController {
     public ResponseEntity<ResponseData<PostsResponse>> getPostById(@PathVariable long id) {
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Lấy bài viết thành công", postsService.getPostById(id)));
     }
+
 
     @GetMapping("/user/{userId}")
     public ResponseEntity<ResponseData<PageResponse<List<PostsResponse>>>> getPostsByUser(@PathVariable long userId,

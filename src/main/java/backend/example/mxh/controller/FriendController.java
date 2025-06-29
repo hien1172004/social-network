@@ -10,6 +10,7 @@ import backend.example.mxh.until.ResponseCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -24,6 +25,7 @@ public class FriendController {
      * Gửi lời mời kết bạn
      */
     @PostMapping("/request")
+    @PreAuthorize("#dto.senderId == authentication.principal.id")
     public ResponseEntity<ResponseData<Long>> sendFriendRequest(@RequestBody @Valid FriendDTO dto) {
         Long requestId = friendService.sendFriendRequest(dto);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Gửi lời mời kết bạn thành công", requestId));
@@ -33,6 +35,7 @@ public class FriendController {
      * Chấp nhận lời mời kết bạn
      */
     @PutMapping("/{receiverId}/accept/{senderId}")
+    @PreAuthorize("#senderId == authentication.principal.id")
     public ResponseEntity<ResponseData<Void>> acceptRequest(@PathVariable("senderId") Long senderId,
                                                             @PathVariable("receiverId") Long receiverId) {
         friendService.acceptFriendRequest(senderId, receiverId);
@@ -43,6 +46,7 @@ public class FriendController {
      * Từ chối lời mời kết bạn
      */
     @PutMapping("/{receiverId}/decline/{senderId}")
+    @PreAuthorize("#senderId == authentication.principal.id")
     public ResponseEntity<ResponseData<Void>> declineRequest(@PathVariable("senderId") Long senderId,
                                                              @PathVariable("receiverId") Long receiverId) {
         friendService.declineFriendRequest(senderId, receiverId);
@@ -52,8 +56,9 @@ public class FriendController {
     /**
      * Hủy kết bạn
      */
-    @DeleteMapping("/unfriend")
-    public ResponseEntity<ResponseData<Void>> unfriend(@RequestParam("senderId") Long userId1, @RequestParam("receiverId") Long userId2) {
+    @DeleteMapping("/unfriend/{senderId}/{receiverId}")
+    @PreAuthorize("#userId1 == authentication.principal.id")
+    public ResponseEntity<ResponseData<Void>> unfriend(@PathVariable("senderId") Long userId1, @PathVariable("receiverId") Long userId2) {
         friendService.unAcceptFriendRequest(userId1, userId2);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Đã huỷ kết bạn"));
     }
@@ -61,6 +66,7 @@ public class FriendController {
      * thu hồi lời kết bạn
      */
     @DeleteMapping("/cancel")
+    @PreAuthorize("#senderId == authentication.principal.id")
     public ResponseEntity<ResponseData<Void>> cancelFriendRequest(@RequestParam Long senderId,
                                                  @RequestParam Long receiverId) {
         friendService.cancelFriendRequest(senderId, receiverId);
@@ -70,6 +76,7 @@ public class FriendController {
      * Lấy danh sách lời mời kết bạn đã nhận
      */
     @GetMapping("/received")
+    @PreAuthorize("#userId == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<ResponseData<PageResponse<List<FriendResponse>>>> getReceivedRequests(
             @RequestParam(defaultValue = "1", required = false) int pageNo,
             @RequestParam(defaultValue = "10", required = false) int pageSize,
@@ -82,6 +89,7 @@ public class FriendController {
      * Lấy danh sách lời mời kết bạn đã gửi
      */
     @GetMapping("/sent")
+    @PreAuthorize("#userId == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<ResponseData<PageResponse<List<FriendResponse>>>> getSentRequests(
             @RequestParam(defaultValue = "1", required = false) int pageNo,
             @RequestParam(defaultValue = "10", required = false) int pageSize,
@@ -105,7 +113,9 @@ public class FriendController {
     /**
      * Lấy danh sách bạn chung giữa 2 người
      */
+
     @GetMapping("/mutual")
+    @PreAuthorize("#userId1 == authentication.principal.id or #userId2 == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<ResponseData<PageResponse<List<MutualFriendResponse>>>> getMutualFriends(
             @RequestParam Long userId1,
             @RequestParam Long userId2,
@@ -119,6 +129,7 @@ public class FriendController {
      * Gợi ý kết bạn
      */
     @GetMapping("/suggest")
+    @PreAuthorize("#userId == authentication.principal.id or hasRole('ADMIN')")
     public ResponseEntity<ResponseData<PageResponse<List<MutualFriendResponse>>>> suggestFriends(
             @RequestParam int pageNo,
             @RequestParam int pageSize,
