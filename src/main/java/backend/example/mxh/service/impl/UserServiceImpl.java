@@ -4,12 +4,14 @@ import backend.example.mxh.DTO.request.AddUserDTO;
 import backend.example.mxh.DTO.request.ImageDTO;
 import backend.example.mxh.DTO.request.UpdateUserDTO;
 import backend.example.mxh.DTO.response.PageResponse;
+import backend.example.mxh.DTO.response.PostsResponse;
 import backend.example.mxh.DTO.response.UserResponse;
 import backend.example.mxh.entity.User;
 import backend.example.mxh.exception.EmailAlreadyExistsException;
 import backend.example.mxh.exception.ResourceNotFoundException;
 import backend.example.mxh.mapper.UserMapper;
 import backend.example.mxh.repository.UserRepository;
+import backend.example.mxh.service.BaseRedisService;
 import backend.example.mxh.service.UploadImageFile;
 import backend.example.mxh.service.UserService;
 import backend.example.mxh.service.WebSocketService;
@@ -43,6 +45,10 @@ public class UserServiceImpl implements UserService {
     private final UserMapper userMapper;
     private final UploadImageFile cloudinary;
     private final WebSocketService webSocketService;
+    private final BaseRedisService<String, String, UserResponse> baseRedisService;
+    private final BaseRedisService<String, String, PageResponse<List<UserResponse>>> baseRedisServicePage;
+
+    private static final String USER_KEY = "user:";
 
     @Override
     public UserDetailsService userDetailsService() {
@@ -63,6 +69,8 @@ public class UserServiceImpl implements UserService {
         User user = userMapper.toUser2(userDTO);
         log.info("Adding user: {}", user);
         userRepository.save(user);
+
+
         return user.getId();
     }
 
@@ -73,6 +81,10 @@ public class UserServiceImpl implements UserService {
         userMapper.updateUser(user, dto);
         userRepository.save(user);
         log.info("updated user");
+
+        //xoa cache du lieu
+        baseRedisService.delete(USER_KEY + id);
+        log.info("updated user and cleared cache");
     }
 
     @Override
@@ -95,34 +107,41 @@ public class UserServiceImpl implements UserService {
         user.setAvatarUrl(dto.getImageUrl());
         userRepository.save(user);
         log.info("updated avatar");
+
+        //xoa cache
+        baseRedisService.delete(USER_KEY + userId);
+        log.info("updated avatar and cleared cache");
+
     }
 
     @Override
     public UserResponse getDetailUser(long id) {
+        String redisKey = USER_KEY + id;
+        UserResponse cachedUser = baseRedisService.get(redisKey);
+        if(cachedUser != null) {
+            return cachedUser;
+        }
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("not found user"));
         log.info("get detail user");
-        return userMapper.toUserResponse(user);
-    }
+        UserResponse userResponse =  userMapper.toUserResponse(user);
 
-    @Override
-    public UserResponse getCurrentUser() {
-//        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-//        if (principal instanceof UserDetails userDetails) {
-//            // Chuyển đổi thành UserDetails
-//            String email = userDetails.getUsername();
-//
-//            User user = userService.getByEmail(email);
-//
-//            return userMapper.toUserResponse(user);
-//        } else {
-//            // Trường hợp nếu principal không phải là UserDetails (chẳng hạn như String)
-//            throw new BadCredentialsException("Không tìm thấy thông tin người dùng.");
-//        }
-        return null;
+        //cache du lieu
+        baseRedisService.set(redisKey, userResponse);
+        baseRedisService.setTimeToLive(redisKey, 3600); // ttl 1h
+        return userResponse;
     }
 
     @Override
     public PageResponse<List<UserResponse>> searchUser(int pageNo, int pageSize, String key) {
+
+        String redisKey = "users:search:" + key + ":" + pageNo + "-" + pageSize;
+
+        PageResponse<List<UserResponse>> cached = baseRedisServicePage.get(redisKey);
+        if (cached != null) {
+            log.info("Return search user from cache: {}", redisKey);
+            return cached;
+        }
+
         int page = 0;
         if(pageNo > 0){
             page = pageNo - 1;
@@ -135,13 +154,18 @@ public class UserServiceImpl implements UserService {
         else{
             users = userRepository.findAll(pageable);
         }
-        return PageResponse.<List<UserResponse>>builder()
+
+        PageResponse<List<UserResponse>> response = PageResponse.<List<UserResponse>>builder()
                 .pageNo(pageNo)
                 .pageSize(pageSize)
                 .items(users.stream().map(userMapper::toUserResponse).toList())
                 .totalPages(users.getTotalPages())
-                .totalElements( users.getTotalElements())
+                .totalElements(users.getTotalElements())
                 .build();
+
+        baseRedisServicePage.set(redisKey, response);
+        baseRedisServicePage.setTimeToLive(redisKey, 60); // TTL 1 phút
+        return response;
     }
 
     @Override
@@ -151,6 +175,11 @@ public class UserServiceImpl implements UserService {
         user.setAccountStatus(AccountStatus.INACTIVE);
         userRepository.save(user);
         log.info("deleted user");
+
+        baseRedisService.delete(USER_KEY + id);
+        log.info("deleted user in redis");
+
+
     }
 
     @Override
@@ -180,13 +209,24 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public PageResponse<List<UserResponse>> getUsersOnline(int pageNo, int pageSize) {
+
+//        String redisKey = "users:online:" + pageNo + "-" + pageSize;
+//        // Lấy cache
+//        PageResponse<List<UserResponse>> cached = baseRedisServicePage.get(redisKey);
+//        if (cached != null) {
+//            log.info("Return users online from cache: {}", redisKey);
+//            return cached;
+//        }
         int page = 0;
         if(pageNo > 0){
             page = pageNo - 1;
         }
-        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.ASC, "username"));
+        Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "lastActive"));
         Page<User> users = userRepository.findByStatus(backend.example.mxh.until.UserStatus.ONLINE, pageable);
-        return PageResponse.<List<UserResponse>>builder()
+//        // Lưu cache và đặt TTL 1 phút
+//        baseRedisServicePage.set(redisKey, response);
+//        baseRedisServicePage.setTimeToLive(redisKey, 60);
+        return  PageResponse.<List<UserResponse>>builder()
                 .pageNo(pageNo)
                 .pageSize(pageSize)
                 .items(users.stream().map(userMapper::toUserResponse).toList())
@@ -195,19 +235,6 @@ public class UserServiceImpl implements UserService {
                 .build();
     }
 
-//    @Override
-//    public UserResponse getUserOnlineStatus(long id) {
-//        User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("not found user"));
-//        if(user.getStatus().equals(backend.example.mxh.until.UserStatus.ONLINE) && user.getLastActive() != null){
-//            if(user.getLastActive().isBefore(LocalDateTime.now().minusMinutes(5))){
-//                user.setStatus(UserStatus.OFFLINE);
-//                userRepository.save(user);
-//                webSocketService.setOfflineStatus(user.getId());
-//                log.info("Người dùng {} được đánh dấu OFFLINE do không hoạt động", user.getUsername());
-//            }
-//        }
-//        return userMapper.toUserResponse(user);
-//    }
 
     @Override
     @Transactional
@@ -248,7 +275,7 @@ public class UserServiceImpl implements UserService {
         if(pageNo > 0) {
             page = pageNo - 1;
         }
-        List<Sort.Order> orders = new ArrayList<Sort.Order>();
+        List<Sort.Order> orders = new ArrayList<>();
         for(String sortBy : sorts) {
             Pattern pattern = Pattern.compile("(\\w+?)(:)(.*)");
             Matcher matcher = pattern.matcher(sortBy);
@@ -281,14 +308,17 @@ public class UserServiceImpl implements UserService {
     @Override
     public void updateStatus(long id) {
         User user = userRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("not found user"));
-        if(user.getStatus() == UserStatus.OFFLINE){
-            user.setStatus(UserStatus.ONLINE);
+        if(user.getAccountStatus() == AccountStatus.ACTIVE){
+            user.setAccountStatus(AccountStatus.INACTIVE);
         }
-        else if(user.getStatus() == UserStatus.ONLINE){
-            user.setStatus(UserStatus.OFFLINE);
+        else if(user.getAccountStatus() == AccountStatus.INACTIVE){
+            user.setAccountStatus(AccountStatus.ACTIVE);
         }
         userRepository.save(user);
         log.info("update user {} status {}", user.getUsername(), user.getStatus());
+
+        //xoa cache
+        baseRedisService.delete(USER_KEY + user.getId());
     }
 
 }

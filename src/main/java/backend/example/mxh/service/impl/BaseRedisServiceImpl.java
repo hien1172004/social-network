@@ -24,7 +24,7 @@ public class BaseRedisServiceImpl<K, F, V> implements BaseRedisService<K, F, V> 
 
     @Override
     public void setTimeToLive(K key, long timoutInDays) {
-        redisTemplate.expire(key,timoutInDays, TimeUnit.DAYS);
+        redisTemplate.expire(key,timoutInDays, TimeUnit.SECONDS);
     }
 
     @Override
@@ -74,6 +74,21 @@ public class BaseRedisServiceImpl<K, F, V> implements BaseRedisService<K, F, V> 
     @Override
     public void delete(K key) {
         redisTemplate.delete(key);
+    }
+
+    @Override
+    public void deleteByPrefix(K prefix ) {
+        if (prefix instanceof String prefixStr) {
+            Set<K> keys = redisTemplate.keys((K) (prefixStr + "*"));
+            if (!keys.isEmpty()) {
+                redisTemplate.delete(keys);
+                log.info("Deleted {} keys with prefix '{}'", keys.size(), prefixStr);
+            } else {
+                log.info("No keys found with prefix '{}'", prefixStr);
+            }
+        } else {
+            log.warn("Prefix must be a String, received: {}", prefix);
+        }
     }
 
     @Override

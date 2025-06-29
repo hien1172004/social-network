@@ -14,6 +14,7 @@ import backend.example.mxh.mapper.FriendMapper;
 import backend.example.mxh.mapper.UserMapper;
 import backend.example.mxh.repository.FriendRepository;
 import backend.example.mxh.repository.UserRepository;
+import backend.example.mxh.service.BaseRedisService;
 import backend.example.mxh.service.FriendService;
 import backend.example.mxh.service.NotificationService;
 import backend.example.mxh.until.FriendStatus;
@@ -40,6 +41,8 @@ public class FriendServiceImpl implements FriendService {
     private final UserRepository userRepository;
     private final UserMapper userMapper;
     private final NotificationService notificationService;
+    private final BaseRedisService<String, String, PageResponse<List<FriendResponse>>> baseRedisServicePage;
+    private final BaseRedisService<String, String, PageResponse<List<MutualFriendResponse>>> baseRedisServiceMutual;
 
     @Override
     public Long sendFriendRequest(FriendDTO dto) {
@@ -82,6 +85,11 @@ public class FriendServiceImpl implements FriendService {
         friendRepository.save(friend);
         log.info("Accepted friend request: {}", friend);
 
+        // Clear cache
+        baseRedisServicePage.deleteByPrefix("friends:list:user:" + senderId);
+        baseRedisServicePage.deleteByPrefix("friends:list:user:" + receiverId);
+        baseRedisServiceMutual.deleteByPrefix("friends:mutual:user:"); // Hoặc pattern delete toàn bộ mutual
+
         // Gửi thông báo sau khi gửi lời mời
         NotificationDTO notificationDTO = NotificationDTO.builder()
                 .senderId(friend.getSender().getId())
@@ -110,8 +118,15 @@ public class FriendServiceImpl implements FriendService {
         }
         friendRepository.unfriend(userId1, userId2, FriendStatus.ACCEPTED);
         log.info("User {} unfriended user {}", userId1, userId2);
+
+        // xoa cache
+        baseRedisServicePage.deleteByPrefix("friends:list:user:" + userId1);
+        baseRedisServicePage.deleteByPrefix("friends:list:user:" + userId2);
+        baseRedisServiceMutual.deleteByPrefix("friends:mutual:user:");
     }
 
+
+    // thu hoi
     @Override
     public void cancelFriendRequest(Long senderId, Long receiverId) {
         Friend friend = friendRepository.getFriendRequest(senderId, receiverId, FriendStatus.PENDING, FriendStatus.DECLINED).orElseThrow(()
@@ -156,23 +171,36 @@ public class FriendServiceImpl implements FriendService {
 
     @Override
     public PageResponse<List<FriendResponse>> getFriends(int pageNo, int pageSize, Long userId) {
-        int page = 0;
-        if (pageNo > 0) {
-            page = pageNo - 1;
-        }
+        String redisKey = "friends:list:user:" + userId + ":page:" + pageNo + "-" + pageSize;
+        PageResponse<List<FriendResponse>> cached = baseRedisServicePage.get(redisKey);
+        if (cached != null) return cached;
+
+        int page = (pageNo > 0) ? pageNo - 1 : 0;
+
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Friend> friends = friendRepository.findAcceptedFriends(userId, FriendStatus.ACCEPTED, pageable);
-        return PageResponse.<List<FriendResponse>>builder()
+
+        PageResponse<List<FriendResponse>> response = PageResponse.<List<FriendResponse>>builder()
                 .pageSize(pageSize)
                 .pageNo(pageNo)
                 .items(friends.stream().map(friendMapper::toFriendResponse).toList())
                 .totalElements(friends.getTotalElements())
                 .totalPages(friends.getTotalPages())
                 .build();
+
+        baseRedisServicePage.set(redisKey, response);
+        baseRedisServicePage.setTimeToLive(redisKey, 180);
+        return response;
     }
 
     @Override
     public PageResponse<List<MutualFriendResponse>> getMutualFriends(Long userId1, Long userId2, int pageNo, int pageSize) {
+        String redisKeyMutual = "friends:mutual:user:" + userId1 + "-" + userId2 + ":page:" + pageNo + "-" + pageSize;
+        PageResponse<List<MutualFriendResponse>> cached = baseRedisServiceMutual.get(redisKeyMutual);
+        if(cached != null){
+            log.info("User {} mutual friends found", userId1);
+            return cached;
+        }
         if(userId1.equals(userId2)) {
             throw new InvalidDataException("userId1 equals userId2");
         }
@@ -199,14 +227,16 @@ public class FriendServiceImpl implements FriendService {
         }
         // Lấy danh sách bạn bè chung từ User
         Page<User> mutualFriends = userRepository.findByIdIn(friends1, pageable);
-
-        return PageResponse.<List<MutualFriendResponse>>builder()
+        PageResponse<List<MutualFriendResponse>> response = PageResponse.<List<MutualFriendResponse>>builder()
                 .pageSize(pageSize)
                 .pageNo(pageNo)
                 .items(mutualFriends.stream().map(userMapper::toMutualFriendResponse).toList())
                 .totalElements(mutualFriends.getTotalElements())
                 .totalPages(mutualFriends.getTotalPages())
                 .build();
+        baseRedisServiceMutual.set(redisKeyMutual, response);
+        baseRedisServiceMutual.setTimeToLive(redisKeyMutual, 180);
+        return response;
     }
 
     @Override

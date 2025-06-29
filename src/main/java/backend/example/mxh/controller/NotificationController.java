@@ -1,12 +1,11 @@
 package backend.example.mxh.controller;
 
-import backend.example.mxh.DTO.request.NotificationDTO;
 import backend.example.mxh.DTO.response.NotificationResponse;
 import backend.example.mxh.DTO.response.PageResponse;
 import backend.example.mxh.DTO.response.ResponseData;
 import backend.example.mxh.service.NotificationService;
 import backend.example.mxh.until.ResponseCode;
-import jakarta.validation.Valid;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -19,13 +18,6 @@ import java.util.List;
 public class NotificationController {
 
     private final NotificationService notificationService;
-
-    // Gửi thông báo mới
-//    @PostMapping
-//    public ResponseEntity<Void> createNotification(@RequestBody @Valid NotificationDTO notificationDTO) {
-//        notificationService.createNotification(notificationDTO);
-//        return ResponseEntity.ok().build();
-//    }
 
     // Lấy tất cả thông báo theo userId (có phân trang)
     @GetMapping("/{userId}")

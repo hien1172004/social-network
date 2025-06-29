@@ -13,7 +13,7 @@ public interface BaseRedisService<K, F, V> {
 
     boolean hashExists(K key, F field);
 
-    Object get(K key);
+    V get(K key);
 
      Map<F, V> getField(K key);
 
@@ -24,6 +24,8 @@ public interface BaseRedisService<K, F, V> {
     Set<F> getFieldPrefixes(K key);
 
     void delete(K key);
+
+    void deleteByPrefix(K key);
 
     void delete(K key, F field);
 

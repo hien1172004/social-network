@@ -24,8 +24,6 @@ public interface UserService {
 
     UserResponse getDetailUser(long id);
 
-    UserResponse getCurrentUser();
-
     PageResponse<List<UserResponse>> searchUser(int pageNo, int pageSize, String key);
 
     void deleteUser(long id);

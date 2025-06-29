@@ -14,6 +14,7 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.Collection;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
@@ -45,4 +46,8 @@ public interface UserRepository extends JpaRepository<User, Long> {
     Page<User> getUserWithKeyword(@Param("key") String keyword, Pageable pageable);
 
     Optional<User> findByEmail(@NotBlank(message = "user must be not null") @Email String email);
+
+    List<User> findByAccountStatusAndCreatedAtBefore(AccountStatus accountStatus, Date createdAtBefore);
+
+    List<User> findByAccountStatusAndUpdatedAtBefore(AccountStatus accountStatus, Date updatedAtBefore);
 }
