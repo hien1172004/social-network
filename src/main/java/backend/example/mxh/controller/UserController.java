@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.messaging.handler.annotation.MessageMapping;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -27,6 +28,7 @@ public class UserController {
     /**
      * Thêm người dùng mới
      */
+    @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public ResponseEntity<ResponseData<Long>> createUser(@RequestBody @Valid AddUserDTO dto) {
         long userId = userService.addUser(dto);
@@ -38,6 +40,7 @@ public class UserController {
      * Cập nhật thông tin người dùng
      */
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<ResponseData<Void>> updateUser(@PathVariable("id") long id,
                                            @RequestBody @Valid UpdateUserDTO dto) {
         userService.updateUser(id, dto);
@@ -48,6 +51,7 @@ public class UserController {
      * Cập nhật ảnh đại diện (avatar)
      */
     @PutMapping("/{id}/avatar")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<ResponseData<Void>> updateAvatar(@PathVariable("id") long id,
                                              @RequestBody @Valid ImageDTO dto) throws IOException {
         userService.updateAvatar(id, dto);
@@ -80,6 +84,7 @@ public class UserController {
      * Xoá mềm người dùng (inactive)
      */
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
     public ResponseEntity<ResponseData<Void>> deleteUser(@PathVariable("id") long id) {
         userService.deleteUser(id);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Xoá người dùng thành công"));
@@ -96,6 +101,7 @@ public class UserController {
     }
 
     @GetMapping("/")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<ResponseData<PageResponse<List<UserResponse>>>> getAllUsers( @RequestParam(defaultValue = "1", required = false) int pageNo,
                                                                                        @RequestParam(defaultValue = "10", required = false) int pageSize,
                                                                                        @RequestParam(required = false) String keyword,

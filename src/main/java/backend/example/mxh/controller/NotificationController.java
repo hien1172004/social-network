@@ -8,6 +8,7 @@ import backend.example.mxh.until.ResponseCode;
 
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,6 +22,7 @@ public class NotificationController {
 
     // Lấy tất cả thông báo theo userId (có phân trang)
     @GetMapping("/{userId}")
+    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
     public ResponseEntity<PageResponse<List<NotificationResponse>>> getNotifications(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "1") int pageNo,
@@ -30,6 +32,7 @@ public class NotificationController {
 
     // Lấy tất cả thông báo chưa đọc theo userId (có phân trang)
     @GetMapping("/{userId}/unread")
+    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
     public ResponseEntity<PageResponse<List<NotificationResponse>>> getUnreadNotifications(
             @PathVariable Long userId,
             @RequestParam(defaultValue = "1") int pageNo,
@@ -39,12 +42,14 @@ public class NotificationController {
 
     // Đánh dấu 1 thông báo là đã đọc
     @PutMapping("/{notificationId}/read")
+    @PreAuthorize("notificationSecurity.isOwner(#notificationId, authentication)")
     public ResponseEntity<ResponseData<Void>> markAsRead(@PathVariable Long notificationId) {
         notificationService.markNotificationAsRead(notificationId);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "notification read"));
     }
 
     // Đánh dấu tất cả thông báo là đã đọc
+    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
     @PutMapping("/{userId}/read-all")
     public ResponseEntity<Void> markAllAsRead(@PathVariable Long userId) {
         notificationService.markAllNotificationsAsRead(userId);
@@ -53,6 +58,7 @@ public class NotificationController {
 
     // Đếm số lượng thông báo chưa đọc
     @GetMapping("/{userId}/count-unread")
+    @PreAuthorize("hasRole('ADMIN') or #userId == authentication.principal.id")
     public ResponseEntity<Long> countUnread(@PathVariable Long userId) {
         return ResponseEntity.ok(notificationService.countUnreadNotifications(userId));
     }
