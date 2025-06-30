@@ -31,7 +31,7 @@ public class CommentServiceImpl implements CommentService {
     private final PostsRepository postsRepository;
     private final CommentMapper commentMapper;
     private final NotificationService notificationService;
-
+    private final BaseRedisServiceImpl<String, String, List<CommentResponse>> baseRedisService;
     @Override
     @Transactional
     public Long create(CommentDTO dto) {
@@ -62,6 +62,8 @@ public class CommentServiceImpl implements CommentService {
                     .build();
             notificationService.createNotification(notificationDTO);
         }
+        baseRedisService.delete("comments:post:" + dto.getPostId());
+
         return comment.getId();
     }
 
@@ -71,14 +73,30 @@ public class CommentServiceImpl implements CommentService {
         Comment comment = commentRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Comment not found"));
         commentRepository.delete(comment);
         log.info("Delete comment : {}", comment);
+
+       baseRedisService.delete("comments:post:" + comment.getPosts().getId());
+
     }
 
     @Override
     public List<CommentResponse> getCommentsByPostId(Long postId) {
-        return commentRepository.findByPosts_IdOrderByCreatedAtDesc(postId)
+        String key = "comments:post:" + postId;
+
+        // Đọc cache
+        List<CommentResponse> cached = baseRedisService.get(key);
+        if (cached != null) {
+            log.info("Cache HIT for {}", key);
+            return cached;
+        }
+         // Truy vấn DB
+        List<CommentResponse> comments = commentRepository.findByPosts_IdOrderByCreatedAtDesc(postId)
                 .stream()
                 .map(commentMapper::toResponse)
                 .toList();
+
+       baseRedisService.set(key, comments);
+       baseRedisService.setTimeToLive(key, 300);
+        return comments;
     }
 
     @Override
@@ -91,6 +109,8 @@ public class CommentServiceImpl implements CommentService {
         commentMapper.updateComment(comment, dto);
         commentRepository.save(comment);
         log.info("Update comment {}", comment);
+        baseRedisService.delete("comments:post:" + dto.getPostId());
+
     }
 
     private void validateCommentData(CommentDTO dto) {

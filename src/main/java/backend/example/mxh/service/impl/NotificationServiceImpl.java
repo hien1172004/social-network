@@ -34,6 +34,9 @@ public class NotificationServiceImpl implements NotificationService {
     private final NotificationMapper notificationMapper;
     private final UserRepository userRepository;
     private final WebSocketService webSocketService;
+    private final BaseRedisServiceImpl<String, String, PageResponse<List<NotificationResponse>>> baseRedisService;
+    private static final String NOTIFICATION_KEY_PREFIX = "notifications:user:";
+
     @Override
     public void createNotification(NotificationDTO notificationDTO) {
         User sender = userRepository.findById(notificationDTO.getSenderId())
@@ -51,25 +54,34 @@ public class NotificationServiceImpl implements NotificationService {
         notificationRepository.save(notification);
         log.info("Created notification: {}", notification);
         NotificationResponse message = notificationMapper.toResponse(notification);
-//        socket gui thong bao
         webSocketService.sendNotification(message);
+        baseRedisService.deleteByPrefix(NOTIFICATION_KEY_PREFIX + notification.getReceiver().getId());
     }
 
     @Override
     public PageResponse<List<NotificationResponse>> getNotificationsByUserId(int pageNo, int pageSize, Long userId) {
+        String redisKey = NOTIFICATION_KEY_PREFIX + userId + ":page:" + pageNo + ":size:" + pageSize;
+        PageResponse<List<NotificationResponse>> cached = baseRedisService.get(redisKey);
+        if (cached != null) {
+            log.info("Notification cache HIT for {}", redisKey);
+            return cached;
+        }
         int page = 0;
         if(pageNo > 0){
             page = pageNo - 1;
         }
         Pageable pageable = PageRequest.of(page, pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
         Page<Notification> notifications = notificationRepository.findByReceiver_Id(userId, pageable);
-        return PageResponse.<List<NotificationResponse>>builder()
+        PageResponse<List<NotificationResponse>> response = PageResponse.<List<NotificationResponse>>builder()
                 .pageNo(pageNo)
                 .pageSize(pageSize)
                 .totalElements(notifications.getTotalElements())
                 .totalPages(notifications.getTotalPages())
                 .items(notifications.stream().map(notificationMapper::toResponse).toList())
                 .build();
+        baseRedisService.set(redisKey, response);
+        baseRedisService.setTimeToLive(redisKey, 60);
+        return response;
     }
 
     @Override
@@ -99,6 +111,7 @@ public class NotificationServiceImpl implements NotificationService {
             notificationRepository.save(notification);
         }
         log.info("Marked notification as read: {}", notificationId);
+        baseRedisService.deleteByPrefix(NOTIFICATION_KEY_PREFIX + notification.getReceiver().getId());
     }
 
     @Override
@@ -108,6 +121,7 @@ public class NotificationServiceImpl implements NotificationService {
         unreadNotifications.forEach(notification -> notification.setRead(true));
         notificationRepository.saveAll(unreadNotifications);
         log.info("Marked all notifications as read for user: {}", userId);
+        baseRedisService.deleteByPrefix(NOTIFICATION_KEY_PREFIX + userId);
     }
 
     @Override
