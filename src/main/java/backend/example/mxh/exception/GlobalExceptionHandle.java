@@ -4,6 +4,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
+import org.springframework.security.access.AccessDeniedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
@@ -36,7 +37,7 @@ public class GlobalExceptionHandle {
     @ExceptionHandler({MethodArgumentNotValidException.class, ConstraintViolationException.class, DataIntegrityViolationException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ErrorResponse handleValidationException(Exception e, WebRequest request) {
-        log.error("Validation exception occurred: ", e);  // Log lỗi
+        log.warn("Validation exception occurred: ", e);  // Log lỗi
         ErrorResponse error = new ErrorResponse();
         error.setTimestamp(new Date());
         error.setStatus(HttpStatus.BAD_REQUEST.value());
@@ -154,5 +155,18 @@ public class GlobalExceptionHandle {
 
         // Trả về thông tin lỗi
         return error;
+    }
+
+    @ExceptionHandler(AccessDeniedException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ErrorResponse handleAccessDeniedException(AccessDeniedException e, WebRequest request) {
+        log.error("Access denied: ", e);
+        return ErrorResponse.builder()
+                .timestamp(new Date())
+                .status(HttpStatus.FORBIDDEN.value())
+                .path(request.getDescription(false).replace("uri=", ""))
+                .error(HttpStatus.FORBIDDEN.getReasonPhrase())
+                .message(e.getMessage())
+                .build();
     }
 }

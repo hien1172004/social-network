@@ -5,16 +5,15 @@ import backend.example.mxh.DTO.request.ImageDTO;
 import backend.example.mxh.DTO.request.UpdateUserDTO;
 import backend.example.mxh.DTO.response.PageResponse;
 import backend.example.mxh.DTO.response.UserResponse;
-import org.springframework.data.domain.Page;
 import org.springframework.security.core.userdetails.UserDetailsService;
 
 import java.io.IOException;
 import java.util.List;
 
 
-public interface UserService {
+public interface UserService extends UserDetailsService {
 
-    UserDetailsService userDetailsService();
+//    UserDetailsService userDetailsService();
 
     long addUser(AddUserDTO user);
 

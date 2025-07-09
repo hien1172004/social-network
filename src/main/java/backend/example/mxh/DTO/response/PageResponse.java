@@ -2,11 +2,10 @@ package backend.example.mxh.DTO.response;
 
 import lombok.*;
 
-@Getter
-@Setter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
+@Data
 public class PageResponse<T>  {
     private int pageNo;
     private int pageSize;

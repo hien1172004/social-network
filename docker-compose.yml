@@ -26,6 +26,7 @@ services:
     environment:
       ALLOW_EMPTY_PASSWORD: "yes"
       REDIS_DISABLE_COMMANDS: "FLUSHDB;FLUSHALL"
+    restart: always
     networks:
       - backend
 

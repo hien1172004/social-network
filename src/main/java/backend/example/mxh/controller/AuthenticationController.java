@@ -22,7 +22,7 @@ import static org.springframework.http.HttpStatus.OK;
 @Slf4j
 @Validated
 @RestController
-@RequestMapping("api/auth")
+@RequestMapping("/api/auth")
 @RequiredArgsConstructor
 public class AuthenticationController {
 

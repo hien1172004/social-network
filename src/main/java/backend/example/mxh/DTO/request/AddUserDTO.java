@@ -23,7 +23,13 @@ public class AddUserDTO {
     @Pattern(regexp = "^[0-9]{10,11}$", message = "Phone number must be 10-11 digits")
     private String phoneNumber;
 
+    @NotBlank(message = "Password is required")
+    @Pattern(
+            regexp = "^(?=.*[A-Za-z])(?=.*\\d)[A-Za-z\\d]{6,20}$",
+            message = "Password must be 6-20 characters, include at least 1 letter and 1 number"
+    )
     private String password;
+
     @NotBlank(message = "Email is required")
     @Email(message = "Email format is invalid")
     private String email;

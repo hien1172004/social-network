@@ -30,32 +30,31 @@ public class UserController {
      */
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
-    public ResponseEntity<ResponseData<Long>> createUser(@RequestBody @Valid AddUserDTO dto) {
-        long userId = userService.addUser(dto);
-        return ResponseEntity.status(201)
-                .body(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Tạo người dùng thành công", userId));
+    public ResponseData<Long> createUser(@RequestBody @Valid AddUserDTO dto) {
+        Long userId = userService.addUser(dto);
+        return new ResponseData<>(HttpStatus.CREATED.value(), "User created", userId);
     }
 
     /**
      * Cập nhật thông tin người dùng
      */
-    @PutMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
-    public ResponseEntity<ResponseData<Void>> updateUser(@PathVariable("id") long id,
+    @PutMapping("/{id}")
+    public ResponseData<Void> updateUser(@PathVariable("id") long id,
                                            @RequestBody @Valid UpdateUserDTO dto) {
         userService.updateUser(id, dto);
-        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Cập nhật người dùng thành công"));
+        return new ResponseData<>(HttpStatus.ACCEPTED.value(), "Cập nhật người dùng thành công");
     }
 
     /**
      * Cập nhật ảnh đại diện (avatar)
      */
-    @PutMapping("/{id}/avatar")
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    @PutMapping("/{id}/avatar")
     public ResponseEntity<ResponseData<Void>> updateAvatar(@PathVariable("id") long id,
                                              @RequestBody @Valid ImageDTO dto) throws IOException {
         userService.updateAvatar(id, dto);
-        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Cập nhật avatar thành công"));
+        return ResponseEntity.ok(new ResponseData<>(HttpStatus.ACCEPTED.value(), "Cập nhật avatar thành công"));
     }
 
     /**
@@ -83,14 +82,16 @@ public class UserController {
     /**
      * Xoá mềm người dùng (inactive)
      */
-    @DeleteMapping("/{id}")
     @PreAuthorize("hasRole('ADMIN') or #id == authentication.principal.id")
+    @DeleteMapping("/{id}")
     public ResponseEntity<ResponseData<Void>> deleteUser(@PathVariable("id") long id) {
         userService.deleteUser(id);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Xoá người dùng thành công"));
     }
 
-
+    /**
+     * lấy nhũng người dùng đang online
+     */
     @GetMapping("/online")
     public ResponseEntity<ResponseData<PageResponse<List<UserResponse>>>> getOnlineUsers(
             @RequestParam(defaultValue = "1", required = false) int pageNo,
@@ -99,9 +100,11 @@ public class UserController {
         PageResponse<List<UserResponse>> result = userService.getUsersOnline(pageNo, pageSize);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Lấy ngươi dung online thanh cong", result));
     }
-
-    @GetMapping("/")
+    /**
+     * lấy tất cả người dùng
+     */
     @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping("/")
     public ResponseEntity<ResponseData<PageResponse<List<UserResponse>>>> getAllUsers( @RequestParam(defaultValue = "1", required = false) int pageNo,
                                                                                        @RequestParam(defaultValue = "10", required = false) int pageSize,
                                                                                        @RequestParam(required = false) String keyword,
@@ -109,4 +112,14 @@ public class UserController {
         PageResponse<List<UserResponse>> result = userService.getAllUsers(pageNo, pageSize, keyword, sortBy);
         return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "thanh cong", result));
     }
+    /**
+     * cập nhật trạng thái tài khoản ACTIVE|INACTIVE
+     */
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping("/{id}/account-status")
+    public ResponseData<Void> updateStatusForUser(@PathVariable("id") long id) {
+        userService.updateStatus(id);
+        return new ResponseData<>(HttpStatus.ACCEPTED.value(), "Cập nhật trạng thái thành công");
+    }
+
 }

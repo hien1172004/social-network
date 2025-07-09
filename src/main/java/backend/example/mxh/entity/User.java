@@ -24,6 +24,7 @@ public class User extends AbstractEntity implements UserDetails, Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+
     @Column(nullable = false, unique = true, length = 50)
     private String username;
 
@@ -88,10 +89,6 @@ public class User extends AbstractEntity implements UserDetails, Serializable {
     private List<Notification> receivedNotification;
 
 
-    @Override
-    public String getUsername() {
-        return this.getEmail();
-    }
     
     @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
@@ -105,7 +102,7 @@ public class User extends AbstractEntity implements UserDetails, Serializable {
 
     @Override
     public boolean isAccountNonLocked() {
-        return this.accountStatus == AccountStatus.ACTIVE;
+        return this.accountStatus != AccountStatus.LOCKED;
     }
 
     @Override

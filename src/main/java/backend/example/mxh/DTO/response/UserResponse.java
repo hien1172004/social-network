@@ -1,6 +1,7 @@
 package backend.example.mxh.DTO.response;
 
 import backend.example.mxh.until.UserRole;
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -19,5 +20,6 @@ public class UserResponse {
     private String bio;
     private String status;
     private UserRole role;
+    @JsonFormat(pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime lastActive;
 }

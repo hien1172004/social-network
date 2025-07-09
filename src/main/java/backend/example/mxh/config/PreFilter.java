@@ -49,7 +49,7 @@ public class PreFilter extends OncePerRequestFilter {
         final String email = jwtService.extractUsername(token, ACCESS_TOKEN);
 
         if (StringUtils.isNotEmpty(email) && SecurityContextHolder.getContext().getAuthentication() == null) {
-            UserDetails userDetails = userService.userDetailsService().loadUserByUsername(email);
+            UserDetails userDetails = userService.loadUserByUsername(email);
             if (jwtService.isValid(token, ACCESS_TOKEN, userDetails)) {
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());

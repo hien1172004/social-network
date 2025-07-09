@@ -1,9 +1,11 @@
 package backend.example.mxh.DTO.response;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
+import lombok.Builder;
 import lombok.Getter;
 
 @Getter
+@Builder
 public class ResponseData <T>{
     private int code;
     private String message;

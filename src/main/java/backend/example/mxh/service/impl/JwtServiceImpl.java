@@ -13,7 +13,7 @@ import io.jsonwebtoken.security.Keys;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.core.GrantedAuthority;
+
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
 
@@ -22,7 +22,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.function.Function;
-import java.util.stream.Collectors;
+
 
 import static backend.example.mxh.until.TokenType.VERIFICATION_TOKEN;
 
@@ -48,6 +48,9 @@ public class JwtServiceImpl implements JwtService {
 
     @Value(("${jwt.verifyKey}"))
     private String verifyKey;
+
+    private static final String ISSUER = "mxh-backend";
+    private static final String AUDIENCE = "mxh-frontend";
 
     @Override
     public String generateToken(UserDetails user) {
@@ -87,8 +90,10 @@ public class JwtServiceImpl implements JwtService {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(userDetails.getUsername())
+                .setIssuer(ISSUER)
+                .setAudience(AUDIENCE)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date((System.currentTimeMillis()) + 1000 * 60 * 60 * 24 * expiryHour))
+                .setExpiration(new Date((System.currentTimeMillis()) + 1000 * 60 * 60  * expiryHour))
                 .signWith(getKey(TokenType.ACCESS_TOKEN), SignatureAlgorithm.HS256)
                 .compact();
     }
@@ -97,6 +102,8 @@ public class JwtServiceImpl implements JwtService {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(userDetails.getUsername())
+                .setIssuer(ISSUER)
+                .setAudience(AUDIENCE)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date((System.currentTimeMillis()) + 1000 * 60 * 60 * 24 * expiryDay))
                 .signWith(getKey(TokenType.REFRESH_TOKEN), SignatureAlgorithm.HS256)
@@ -107,6 +114,8 @@ public class JwtServiceImpl implements JwtService {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(userDetails.getUsername())
+                .setIssuer(ISSUER)
+                .setAudience(AUDIENCE)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date((System.currentTimeMillis()) + 1000 * 60 * 60))
                 .signWith(getKey(TokenType.RESET_TOKEN), SignatureAlgorithm.HS256)
@@ -117,6 +126,8 @@ public class JwtServiceImpl implements JwtService {
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(userDetails.getUsername())
+                .setIssuer(ISSUER)
+                .setAudience(AUDIENCE)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 24))
                 .signWith(getKey(VERIFICATION_TOKEN), SignatureAlgorithm.HS256)
@@ -143,10 +154,17 @@ public class JwtServiceImpl implements JwtService {
 
     private <T> T extractClaim(String token, TokenType type, Function<Claims, T> claimsResolver) {
         final Claims claims = extraAllClaim(token, type);
+        if (!ISSUER.equals(claims.getIssuer())) {
+            throw new InvalidDataException("Invalid issuer");
+        }
+        if (!AUDIENCE.equals(claims.getAudience())) {
+            throw new InvalidDataException("Invalid audience");
+        }
         return claimsResolver.apply(claims);
     }
 
     private Claims extraAllClaim(String token, TokenType type) {
+        log.info("Extract all claims for token {}...", token.substring(0, 15));
         try {
             return Jwts.parserBuilder()
                     .setSigningKey(getKey(type))

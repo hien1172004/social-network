@@ -1,5 +1,8 @@
     package backend.example.mxh.config;
 
+    import com.fasterxml.jackson.databind.ObjectMapper;
+    import com.fasterxml.jackson.databind.SerializationFeature;
+    import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
     import org.springframework.beans.factory.annotation.Value;
     import org.springframework.context.annotation.Bean;
     import org.springframework.context.annotation.Configuration;
@@ -25,15 +28,25 @@
             return new JedisConnectionFactory(redisStandaloneConfiguration);
         }
 
+
         @Bean
-        <K, V> RedisTemplate<K, V> redisTemplate() {
+        public ObjectMapper redisObjectMapper() {
+            ObjectMapper mapper = new ObjectMapper();
+            mapper.registerModule(new JavaTimeModule());
+            mapper.disable(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS);
+            return mapper;
+        }
+
+        @Bean
+        <K, V> RedisTemplate<K, V> redisTemplate(ObjectMapper redisObjectMapper) {
             RedisTemplate<K, V> redisTemplate = new RedisTemplate<>();
 
             redisTemplate.setConnectionFactory(jedisConnectionFactory());
-            redisTemplate.setKeySerializer(new GenericJackson2JsonRedisSerializer());
-            redisTemplate.setHashKeySerializer(new GenericJackson2JsonRedisSerializer());
-            redisTemplate.setValueSerializer(new GenericJackson2JsonRedisSerializer());
-            redisTemplate.setHashValueSerializer(new GenericJackson2JsonRedisSerializer());
+            GenericJackson2JsonRedisSerializer serializer = new GenericJackson2JsonRedisSerializer(redisObjectMapper);
+            redisTemplate.setKeySerializer(serializer);
+            redisTemplate.setHashKeySerializer(serializer);
+            redisTemplate.setValueSerializer(serializer);
+            redisTemplate.setHashValueSerializer(serializer);
 
             return redisTemplate;
         }
