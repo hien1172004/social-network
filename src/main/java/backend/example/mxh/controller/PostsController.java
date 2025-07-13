@@ -9,6 +9,7 @@ import backend.example.mxh.until.ResponseCode;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -25,38 +26,38 @@ public class PostsController {
     private final PostsService postsService;
 
     @PostMapping
-    public ResponseEntity<ResponseData<Long>> createPost(@RequestBody @Valid PostsDTO dto) {
+    public ResponseData<Long> createPost(@RequestBody @Valid PostsDTO dto) {
         long id = postsService.createPost(dto);
-        return ResponseEntity.status(201).body(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Tạo bài viết thành công", id));
+        return new ResponseData<>(HttpStatus.CREATED.value(), "Tạo bài viết thành công", id);
     }
 
     @PreAuthorize("hasRole('ADMIN') or @postSecurity.isOwner(#id, authentication)")
     @PutMapping("/{id}")
-    public ResponseEntity<ResponseData<Void>> updatePost(@PathVariable long id, @RequestBody @Valid PostsDTO dto) throws IOException {
+    public ResponseData<Void> updatePost(@PathVariable long id, @RequestBody @Valid PostsDTO dto) throws IOException {
         postsService.updatePost(id, dto);
-        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Cập nhật bài viết thành công"));
+        return new ResponseData<>(HttpStatus.ACCEPTED.value(), "Cập nhật bài viết thành công");
     }
 
     @PreAuthorize("hasRole('ADMIN') or @postSecurity.isOwner(#id, authentication)")
     @DeleteMapping("/{id}")
-    public ResponseEntity<ResponseData<Void>> deletePost(@PathVariable long id) throws IOException {
+    public ResponseData<Void> deletePost(@PathVariable long id) throws IOException {
         postsService.deletePost(id);
-        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Xóa bài viết thành công"));
+        return new ResponseData<>(HttpStatus.NO_CONTENT.value(), "Xóa bài viết thành công");
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ResponseData<PostsResponse>> getPostById(@PathVariable long id) {
-        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Lấy bài viết thành công", postsService.getPostById(id)));
+    public ResponseData<PostsResponse> getPostById(@PathVariable long id) {
+        return new ResponseData<>(HttpStatus.OK.value(), "Lấy bài viết thành công", postsService.getPostById(id));
     }
 
 
     @GetMapping("/user/{userId}")
-    public ResponseEntity<ResponseData<PageResponse<List<PostsResponse>>>> getPostsByUser(@PathVariable long userId,
+    public ResponseData<PageResponse<List<PostsResponse>>> getPostsByUser(@PathVariable long userId,
                                                                                           @RequestParam(defaultValue = "1", required = false) int pageNo,
                                                                                           @RequestParam(defaultValue = "10", required = false) int pageSize,
-                                                                                          @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
-                                                                                          @RequestParam @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
-        return ResponseEntity.ok(new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Lấy bài viết theo user thành công", postsService.getPostsByUserId(pageNo, pageSize, userId, startDate,endDate)));
+                                                                                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime startDate,
+                                                                                          @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime endDate) {
+        return new ResponseData<>(ResponseCode.SUCCESS.getCode(), "Lấy bài viết theo user thành công", postsService.getPostsByUserId(pageNo, pageSize, userId, startDate,endDate));
     }
 
     @GetMapping

@@ -10,7 +10,6 @@ import backend.example.mxh.exception.EmailAlreadyExistsException;
 import backend.example.mxh.exception.ResourceNotFoundException;
 import backend.example.mxh.service.JwtService;
 import backend.example.mxh.service.UserService;
-import backend.example.mxh.service.UserServiceTest;
 import backend.example.mxh.until.AccountStatus;
 import backend.example.mxh.until.UserRole;
 import com.fasterxml.jackson.databind.ObjectMapper;

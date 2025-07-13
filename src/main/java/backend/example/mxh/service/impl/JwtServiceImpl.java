@@ -65,8 +65,11 @@ public class JwtServiceImpl implements JwtService {
     @Override
     public boolean isValid(String token, TokenType type, UserDetails userDetails) {
         log.info("---------- isValid ----------");
-        final String email = extractUsername(token, type);
-        return (email.equals(userDetails.getUsername()) && !isTokenExpired(token, type));
+        final String emailFromToken = extractUsername(token, type);
+        final String emailFromUser = ((User) userDetails).getEmail();
+        log.info("emailFromToken: {}", emailFromToken);
+        log.info("emailFromUser: {}", emailFromUser);
+        return emailFromToken.equals(emailFromUser) && !isTokenExpired(token, type);
     }
 
     @Override
@@ -89,7 +92,7 @@ public class JwtServiceImpl implements JwtService {
         claims.put("tokenType", TokenType.ACCESS_TOKEN.toString());
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(userDetails.getUsername())
+                .setSubject(((User) userDetails).getEmail())
                 .setIssuer(ISSUER)
                 .setAudience(AUDIENCE)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
@@ -101,7 +104,7 @@ public class JwtServiceImpl implements JwtService {
     private String generateRefreshToken(Map<String, Object> claims, UserDetails userDetails) {
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(userDetails.getUsername())
+                .setSubject(((User) userDetails).getEmail())
                 .setIssuer(ISSUER)
                 .setAudience(AUDIENCE)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
@@ -113,7 +116,7 @@ public class JwtServiceImpl implements JwtService {
     private String generateResetToken(Map<String, Object> claims, UserDetails userDetails) {
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(userDetails.getUsername())
+                .setSubject(((User) userDetails).getEmail())
                 .setIssuer(ISSUER)
                 .setAudience(AUDIENCE)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
@@ -125,7 +128,7 @@ public class JwtServiceImpl implements JwtService {
     private String generateVerificationToken(Map<String, Object> claims, UserDetails userDetails) {
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(userDetails.getUsername())
+                .setSubject(((User) userDetails).getEmail())
                 .setIssuer(ISSUER)
                 .setAudience(AUDIENCE)
                 .setIssuedAt(new Date(System.currentTimeMillis()))

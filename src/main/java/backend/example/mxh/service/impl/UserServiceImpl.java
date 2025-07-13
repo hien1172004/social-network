@@ -18,7 +18,6 @@ import backend.example.mxh.until.AccountStatus;
 import backend.example.mxh.until.UserStatus;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import jakarta.validation.constraints.Max;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
@@ -27,7 +26,6 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -47,10 +45,8 @@ public class UserServiceImpl implements UserService {
     private final UploadImageFile cloudinary;
     private final WebSocketService webSocketService;
     private final BaseRedisService<String, String, Object> baseRedisService;
-
     private final ObjectMapper redisObjectMapper;
     private static final String USER_KEY = "user:";
-
 
 
     @Override

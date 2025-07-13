@@ -17,7 +17,7 @@ public class PostsDTO {
     private String content;
 
     @NotNull(message = "User ID is required")
-    private long userId;
+    private Long userId;
 
     private List<ImageDTO> postImage;
 }

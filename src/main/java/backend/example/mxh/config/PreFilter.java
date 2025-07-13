@@ -49,13 +49,17 @@ public class PreFilter extends OncePerRequestFilter {
         final String email = jwtService.extractUsername(token, ACCESS_TOKEN);
 
         if (StringUtils.isNotEmpty(email) && SecurityContextHolder.getContext().getAuthentication() == null) {
+            log.info("User1: {}", email);
             UserDetails userDetails = userService.loadUserByUsername(email);
+            log.info("User2: {}", userDetails.getUsername());
             if (jwtService.isValid(token, ACCESS_TOKEN, userDetails)) {
                 SecurityContext context = SecurityContextHolder.createEmptyContext();
                 UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+                log.info("Authentication: {}", authentication);
                 authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
                 context.setAuthentication(authentication);
                 SecurityContextHolder.setContext(context);
+                log.info("Successfully authenticated user: {}", userDetails.getUsername());
             }
         }
 

@@ -2,19 +2,19 @@ package backend.example.mxh.service.impl;
 
 import backend.example.mxh.DTO.request.ImageDTO;
 import backend.example.mxh.DTO.request.PostsDTO;
-import backend.example.mxh.DTO.response.ImageResponse;
 import backend.example.mxh.DTO.response.PageResponse;
 import backend.example.mxh.DTO.response.PostsResponse;
 import backend.example.mxh.entity.PostImage;
 import backend.example.mxh.entity.Posts;
 import backend.example.mxh.exception.ResourceNotFoundException;
 import backend.example.mxh.mapper.PostsMapper;
-import backend.example.mxh.repository.PostImageRepository;
 import backend.example.mxh.repository.PostsRepository;
 import backend.example.mxh.repository.UserRepository;
 import backend.example.mxh.service.BaseRedisService;
 import backend.example.mxh.service.PostsService;
 import backend.example.mxh.service.UploadImageFile;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,6 +26,7 @@ import org.springframework.stereotype.Service;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,20 +36,20 @@ import java.util.stream.Collectors;
 @Slf4j
 public class PostsServiceImpl implements PostsService {
     private final PostsRepository postsRepository;
-    private final UserRepository userRepository;
     private final UploadImageFile cloudinary;
     private final PostsMapper postsMapper;
-    private final PostImageRepository postImageRepository;
-    private static final  String POST_KEY = "post:";
-    private final BaseRedisService<String, String, PostsResponse> baseRedisService;
-    private final BaseRedisService<String, String, PageResponse<List<PostsResponse>>> baseRedisServicePage;
+    private static final String POST_KEY = "post:";
+    private static final String USER_KEY = "user:";
+    private final BaseRedisService<String, String, Object> baseRedisService;
+    private final ObjectMapper redisObjectMapper;
+    private final UserRepository userRepository;
 
     @Override
     @Transactional
     public long createPost(PostsDTO postsDTO) {
         Posts posts = postsMapper.toPosts(postsDTO);
         postsRepository.save(posts);
-        // Gán quan hệ ngược cho PostImage
+
         if (posts.getPostImage() != null) {
             for (PostImage img : posts.getPostImage()) {
                 img.setPosts(posts); // Cực kỳ quan trọng!
@@ -57,15 +58,15 @@ public class PostsServiceImpl implements PostsService {
         log.info(posts.toString());
 
         // Xóa cache danh sách posts của user
-        String redisKeyPrefix = POST_KEY + "user:" + posts.getUser().getId();
-        baseRedisServicePage.deleteByPrefix(redisKeyPrefix);
+        String redisKeyPrefix = POST_KEY + USER_KEY + posts.getUser().getId();
+        baseRedisService.deleteByPrefix(redisKeyPrefix);
         log.info("Cleared cache for user posts with prefix: {}", redisKeyPrefix);
         return posts.getId();
     }
 
     @Transactional
     @Override
-    public void updatePost(long id, PostsDTO postsDTO) throws IOException {
+    public void updatePost(long id, PostsDTO postsDTO) {
         Posts posts = postsRepository.findById(id).orElseThrow(() -> new ResourceNotFoundException("Post not found"));
         postsMapper.updatePosts(posts, postsDTO);
         // Cập nhật ảnh nếu có ảnh mới
@@ -94,27 +95,19 @@ public class PostsServiceImpl implements PostsService {
                             .posts(posts) // Gán lại post
                             .build())
                     .collect(Collectors.toList());
-
+            if (posts.getPostImage() == null) {
+                posts.setPostImage(new HashSet<>());
+            }
             posts.getPostImage().addAll(newImages);
         }
 
 
         postsRepository.save(posts);
         log.info("Updated post id={} with new content and images", id);
-
-        postsRepository.save(posts);
-
-        // Cập nhật cache
-        String redisKey = POST_KEY + id;
-        PostsResponse updatedResponse = postsMapper.toPostsResponse(posts);
-        baseRedisService.set(redisKey, updatedResponse);
-        baseRedisService.setTimeToLive(redisKey, 3600);
-
-        log.info("Updated post id={} and cache", id);
-
+        baseRedisService.delete(POST_KEY + id);
         // Xóa cache danh sách posts của user
-        String redisKeyPrefix = POST_KEY + "user:" + posts.getUser().getId();
-        baseRedisServicePage.deleteByPrefix(redisKeyPrefix);
+        String redisKeyPrefix = POST_KEY + USER_KEY + posts.getUser().getId();
+        baseRedisService.deleteByPrefix(redisKeyPrefix);
         log.info("Cleared cache for user posts with prefix: {}", redisKeyPrefix);
     }
 
@@ -137,8 +130,8 @@ public class PostsServiceImpl implements PostsService {
         log.info("Deleted post and cache for id: {}", id);
 
         // Xóa cache danh sách posts của user
-        String redisKeyPrefix = POST_KEY + "user:" + posts.getUser().getId();
-        baseRedisServicePage.deleteByPrefix(redisKeyPrefix);
+        String redisKeyPrefix = POST_KEY + USER_KEY + posts.getUser().getId();
+        baseRedisService.deleteByPrefix(redisKeyPrefix);
         log.info("Cleared cache for user posts with prefix: {}", redisKeyPrefix);
     }
 
@@ -146,8 +139,13 @@ public class PostsServiceImpl implements PostsService {
     @Transactional
     public PostsResponse getPostById(long id) {
         String redisKey = POST_KEY + id;
-        PostsResponse cached = baseRedisService.get(redisKey);
-        if (cached != null) return cached;
+        Object cached = baseRedisService.get(redisKey);
+
+        if (cached != null) {
+            log.info("Cached post id={}", id);
+            return redisObjectMapper.convertValue(cached, PostsResponse.class);
+        }
+
         Posts posts = postsRepository.findWithDetailsById(id).orElseThrow(() -> new ResourceNotFoundException("Post not found"));
 
         PostsResponse response = postsMapper.toPostsResponse(posts);
@@ -177,19 +175,20 @@ public class PostsServiceImpl implements PostsService {
     @Override
     public PageResponse<List<PostsResponse>> getPostsByUserId(int pageNo, int pageSize, long userId, LocalDateTime startDate, LocalDateTime endDate) {
         // Tạo key Redis duy nhất dựa trên các tham số
-        String redisKey = POST_KEY + "user:" + userId + ":page:" + pageNo + ":size:" + pageSize +
-                (startDate != null && endDate != null ? ":start:" + startDate.toString() + ":end:" + endDate.toString() : "");
+        String redisKey = POST_KEY + USER_KEY + userId + ":page:" + pageNo + ":size:" + pageSize +
+                (startDate != null && endDate != null ? ":start:" + startDate + ":end:" + endDate : "");
 
         // Kiểm tra cache
-        PageResponse<List<PostsResponse>> cached = baseRedisServicePage.get(redisKey);
+        Object cached = baseRedisService.get(redisKey);
         if (cached != null) {
             log.info("Cache hit for posts of userId: {}, page: {}, size: {}", userId, pageNo, pageSize);
-            return cached;
+            return redisObjectMapper.convertValue(
+                    cached,
+                    new TypeReference<>() {
+                    }
+            );
         }
-        int page = 0;
-        if (pageNo > 0) {
-            page = pageNo - 1;
-        }
+        int page = Math.max(0, pageNo - 1);
         Pageable pageable = PageRequest.of(page, pageSize, Sort.Direction.DESC, "createdAt");
         Page<Posts> posts;
         if (startDate != null && endDate != null) {
@@ -207,7 +206,7 @@ public class PostsServiceImpl implements PostsService {
                 .items(posts.stream().map(postsMapper::toPostsResponse).toList())
                 .build();
         // cache du lieu
-        baseRedisServicePage.set(redisKey, response);
+        baseRedisService.set(redisKey, response);
         baseRedisService.setTimeToLive(redisKey, 3600); // TTL 1 giờ
 
         return response;
